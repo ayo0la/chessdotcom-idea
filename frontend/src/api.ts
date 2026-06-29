@@ -48,6 +48,6 @@ export function unfollowPlayer(username: string): Promise<void> {
   return apiFetch(`/follows/${username}`, { method: "DELETE" });
 }
 
-export function searchPlayer(username: string): Promise<{ username: string; ratings: LeaderboardEntry[] }> {
+export function searchPlayer(username: string): Promise<{ username: string; ratings: Array<{ timeControl: string; rating: number }> }> {
   return apiFetch(`/players/${username}`);
 }

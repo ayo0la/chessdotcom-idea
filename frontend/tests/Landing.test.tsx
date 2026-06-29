@@ -15,7 +15,9 @@ vi.mock("react-router-dom", async () => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
-beforeEach(() => vi.clearAllMocks());
+beforeEach((): void => {
+  vi.clearAllMocks();
+});
 
 describe("Landing", () => {
   it("renders the claim form", () => {

@@ -1,5 +1,5 @@
 import session from "express-session";
-import { RedisStore } from "connect-redis";
+import RedisStore from "connect-redis";
 import { redis } from "./redis.js";
 
 export const sessionParser = session({

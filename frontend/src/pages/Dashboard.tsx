@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import TimeControlTabs, { type TimeControl } from "../components/TimeControlTabs";
 import LeaderboardTable from "../components/LeaderboardTable";
 import { useLeaderboard } from "../hooks/useLeaderboard";
@@ -7,14 +7,17 @@ import { useWebSocket } from "../hooks/useWebSocket";
 import { getMe, unfollowPlayer, type UserSession } from "../api";
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [tc, setTc] = useState<TimeControl>("blitz");
   const { entries, loading, update, remove } = useLeaderboard(tc);
   const [deltas, setDeltas] = useState<Record<string, number>>({});
   const [me, setMe] = useState<UserSession | null>(null);
 
   useEffect(() => {
-    getMe().then(setMe).catch(() => null);
-  }, []);
+    getMe()
+      .then(setMe)
+      .catch(() => navigate("/"));
+  }, [navigate]);
 
   useWebSocket((msg) => {
     if (msg.type === "rating_update" && "timeControl" in msg && msg.timeControl === tc) {

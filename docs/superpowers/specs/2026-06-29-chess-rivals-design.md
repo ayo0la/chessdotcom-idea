@@ -55,6 +55,7 @@ Chess.com API
 model User {
   id               String   @id @default(cuid())
   chesscomUsername String   @unique
+  claimed          Boolean  @default(false) // true = has an active session; false = followed by others but never signed in
   createdAt        DateTime @default(now())
   following        Follow[] @relation("follower")
   followers        Follow[] @relation("following")
@@ -86,7 +87,10 @@ model Rating {
 
 ### Redis keys
 - `leaderboard:{viewerUserId}:{timeControl}` — Sorted Set, score = rating, member = chesscomUsername
-- `connections:{chesscomUsername}` — Set of WebSocket client IDs to fan-out to
+- `session:{sessionId}` — express-session store (via `connect-redis`)
+
+### In-memory WebSocket connections
+- `connections: Map<chesscomUsername, WebSocket[]>` — maintained on the Express server process; maps each tracked username to the list of connected clients who follow them
 
 ---
 
@@ -96,7 +100,7 @@ model Rating {
 
 | Method | Path | Description |
 |--------|------|-------------|
-| POST | `/auth/claim` | Verify username exists on Chess.com, create User, set session cookie |
+| POST | `/auth/claim` | Verify username exists on Chess.com, upsert User with `claimed: true`, set `express-session` cookie |
 | DELETE | `/auth/session` | Clear session |
 | GET | `/me` | Return current user + their ratings |
 | GET | `/players/:username` | Proxy + cache Chess.com player stats |

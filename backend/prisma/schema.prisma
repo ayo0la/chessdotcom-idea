@@ -1,0 +1,42 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String   @id @default(cuid())
+  chesscomUsername String   @unique
+  claimed          Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  following        Follow[] @relation("follower")
+  followers        Follow[] @relation("following")
+  ratings          Rating[]
+}
+
+model Follow {
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+  follower    User     @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@id([followerId, followingId])
+}
+
+model Rating {
+  id          String   @id @default(cuid())
+  userId      String
+  timeControl String
+  rating      Int
+  wins        Int
+  losses      Int
+  draws       Int
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, timeControl])
+}

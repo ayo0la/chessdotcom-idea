@@ -2,16 +2,24 @@
 
 ## Now: Deploy
 
-- [ ] Create Railway project, connect GitHub repo (root: `backend/`)
-- [ ] Add Railway PostgreSQL plugin — auto-injects `DATABASE_URL`
-- [ ] Add Railway Redis plugin — auto-injects `REDIS_URL`
-- [ ] Set Railway env vars: `SESSION_SECRET`, `NODE_ENV=production`, `PORT=3001`
-- [ ] Confirm Railway deploy command: `npx prisma migrate deploy && node dist/index.js`
-- [ ] Note the Railway service URL (e.g. `https://chess-rivals-backend.up.railway.app`)
-- [ ] Create Vercel project, connect GitHub repo (root: `frontend/`)
-- [ ] Set Vercel env vars: `VITE_API_URL`, `VITE_WS_URL` pointing at Railway URL
-- [ ] Deploy both — smoke test: claim username, follow a player, check leaderboard loads
-- [ ] Verify WebSocket connection works in production (check browser DevTools > Network > WS)
+Free stack: Koyeb (backend, always-on) + Neon (Postgres) + Upstash (Redis) + Vercel (frontend)
+No credit card required across the board.
+
+- [ ] Push local repo to GitHub (`git remote add origin <url> && git push -u origin main`)
+- [ ] Neon (neon.tech) — new project, copy `DATABASE_URL`
+- [ ] Upstash (upstash.com) — new Redis database, copy `REDIS_URL`
+- [ ] Koyeb (koyeb.com) — sign up with GitHub, New App → GitHub → select repo
+  - Service type: Web Service, Builder: Buildpack
+  - Root directory: `backend`
+  - Build: `npm install && npm run build`
+  - Start: `npx prisma migrate deploy && node dist/index.js`
+  - Port: `3001`
+  - Env vars: `DATABASE_URL`, `REDIS_URL`, `SESSION_SECRET`, `NODE_ENV=production`
+- [ ] Note Koyeb app URL (e.g. `https://chess-rivals.koyeb.app`)
+- [ ] Vercel (vercel.com) — connect GitHub repo, root: `frontend`
+  - Env vars: `VITE_API_URL=https://<koyeb-url>/api`, `VITE_WS_URL=wss://<koyeb-url>`
+- [ ] Smoke test: claim username, follow a player, check leaderboard loads
+- [ ] Verify WebSocket works (browser DevTools > Network > WS tab)
 
 ---
 

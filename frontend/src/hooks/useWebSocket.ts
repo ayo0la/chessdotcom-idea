@@ -20,7 +20,10 @@ export function useWebSocket(onMessage: (msg: WsMessage) => void): void {
     let active = true;
 
     function connect() {
-      ws = new WebSocket(`ws://localhost:3001`);
+      const wsUrl =
+        import.meta.env.VITE_WS_URL ??
+        `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}`;
+      ws = new WebSocket(wsUrl);
 
       ws.onopen = () => {
         attemptsRef.current = 0;

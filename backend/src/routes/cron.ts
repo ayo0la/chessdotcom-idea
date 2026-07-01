@@ -9,8 +9,12 @@ router.post("/", async (req, res) => {
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
-  await pollAllRatings();
-  res.json({ ok: true });
+  try {
+    await pollAllRatings();
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: "Poll failed" });
+  }
 });
 
 export default router;

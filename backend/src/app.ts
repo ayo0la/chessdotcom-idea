@@ -1,0 +1,19 @@
+import express from "express";
+import { sessionParser } from "./session.js";
+import authRouter from "./routes/auth.js";
+import meRouter from "./routes/me.js";
+import playersRouter from "./routes/players.js";
+import followsRouter from "./routes/follows.js";
+import leaderboardRouter from "./routes/leaderboard.js";
+import cronRouter from "./routes/cron.js";
+
+export const app = express();
+
+app.use(express.json());
+app.use(sessionParser);
+app.use("/auth", authRouter);
+app.use("/me", meRouter);
+app.use("/players", playersRouter);
+app.use("/follows", followsRouter);
+app.use("/leaderboard", leaderboardRouter);
+app.use("/poll", cronRouter);

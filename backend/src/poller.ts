@@ -13,10 +13,7 @@ export async function pollAllRatings(): Promise<void> {
 
       await db.rating.upsert({
         where: {
-          userId_timeControl: {
-            userId: user.id,
-            timeControl: l.timeControl,
-          },
+          userId_timeControl: { userId: user.id, timeControl: l.timeControl },
         },
         update: {
           rating: l.rating,
@@ -26,10 +23,7 @@ export async function pollAllRatings(): Promise<void> {
         },
         create: { userId: user.id, ...l },
       });
+      // Supabase Realtime pushes DB changes to subscribed frontend clients automatically
     }
   }
-}
-
-export function startPoller(intervalMs = 120_000): NodeJS.Timeout {
-  return setInterval(pollAllRatings, intervalMs);
 }

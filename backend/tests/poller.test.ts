@@ -36,7 +36,7 @@ const fakeUser = {
 beforeEach(() => vi.clearAllMocks());
 
 describe("pollAllRatings", () => {
-  it("updates Postgres when rating has changed", async () => {
+  it("upserts Postgres rating when rating has changed", async () => {
     vi.mocked(db.user.findMany).mockResolvedValueOnce([fakeUser] as any);
     vi.mocked(fetchPlayerRatings).mockResolvedValueOnce([
       { timeControl: "blitz", rating: 3112, wins: 501, losses: 100, draws: 50 },
@@ -55,7 +55,7 @@ describe("pollAllRatings", () => {
     );
   });
 
-  it("skips update when rating has not changed", async () => {
+  it("skips upsert when rating has not changed", async () => {
     vi.mocked(db.user.findMany).mockResolvedValueOnce([fakeUser] as any);
     vi.mocked(fetchPlayerRatings).mockResolvedValueOnce([
       { timeControl: "blitz", rating: 3100, wins: 500, losses: 100, draws: 50 },

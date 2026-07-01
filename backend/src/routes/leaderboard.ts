@@ -1,6 +1,5 @@
 import { Router } from "express";
 import { db } from "../db.js";
-import { redis } from "../redis.js";
 import { requireSession } from "../middleware/requireSession.js";
 
 const router = Router();
@@ -12,40 +11,32 @@ router.get("/", async (req, res) => {
 
   const viewer = await db.user.findUnique({ where: { id: viewerId } });
 
-  const raw = await redis.zrevrangebyscore(
-    `leaderboard:${viewerId}:${tc}`,
-    "+inf",
-    "-inf",
-    "WITHSCORES"
-  );
-
-  const pairs: Array<{ username: string; rating: number }> = [];
-  for (let i = 0; i < raw.length; i += 2) {
-    pairs.push({ username: raw[i], rating: parseInt(raw[i + 1]) });
-  }
-
-  const ratings = await db.rating.findMany({
-    where: {
-      timeControl: tc,
-      user: { chesscomUsername: { in: pairs.map((p) => p.username) } },
+  const follows = await db.follow.findMany({
+    where: { followerId: viewerId },
+    include: {
+      following: {
+        include: {
+          ratings: { where: { timeControl: tc } },
+        },
+      },
     },
-    include: { user: true },
   });
 
-  const result = pairs.map((p, idx) => {
-    const ratingRow = ratings.find((r) => r.user.chesscomUsername === p.username);
-    return {
-      rank: idx + 1,
-      username: p.username,
-      rating: p.rating,
-      wins: ratingRow?.wins ?? 0,
-      losses: ratingRow?.losses ?? 0,
-      draws: ratingRow?.draws ?? 0,
-      isMe: viewer?.chesscomUsername === p.username,
-    };
-  });
+  const entries = follows
+    .filter((f) => f.following.ratings.length > 0)
+    .map((f) => ({
+      userId: f.following.id,
+      username: f.following.chesscomUsername,
+      rating: f.following.ratings[0].rating,
+      wins: f.following.ratings[0].wins,
+      losses: f.following.ratings[0].losses,
+      draws: f.following.ratings[0].draws,
+      isMe: viewer?.chesscomUsername === f.following.chesscomUsername,
+    }))
+    .sort((a, b) => b.rating - a.rating)
+    .map((e, idx) => ({ ...e, rank: idx + 1 }));
 
-  res.json(result);
+  res.json(entries);
 });
 
 export default router;

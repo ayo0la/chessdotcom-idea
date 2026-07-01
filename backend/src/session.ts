@@ -1,21 +1,15 @@
-import session from "express-session";
-import RedisStore from "connect-redis";
-import { redis } from "./redis.js";
+import cookieSession from "cookie-session";
 
-export const sessionParser = session({
-  store: new RedisStore({ client: redis }),
+export const sessionParser = cookieSession({
+  name: "session",
   secret: process.env.SESSION_SECRET ?? "dev_secret",
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  },
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
 });
 
-declare module "express-session" {
-  interface SessionData {
-    userId: string;
+declare module "express-serve-static-core" {
+  interface Request {
+    session: { userId?: string } & Record<string, unknown>;
   }
 }

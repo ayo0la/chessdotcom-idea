@@ -29,9 +29,8 @@ router.post("/claim", async (req, res) => {
 });
 
 router.delete("/session", (req, res) => {
-  req.session.destroy(() => {
-    res.status(204).end();
-  });
+  req.session = null as any;
+  res.status(204).end();
 });
 
 export default router;

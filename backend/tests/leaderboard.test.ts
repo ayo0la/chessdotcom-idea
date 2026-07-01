@@ -5,21 +5,17 @@ import request from "supertest";
 vi.mock("../src/db", () => ({
   db: {
     user: { findUnique: vi.fn() },
-    rating: { findMany: vi.fn() },
+    follow: { findMany: vi.fn() },
   },
-}));
-vi.mock("../src/redis", () => ({
-  redis: { zrevrangebyscore: vi.fn() },
 }));
 vi.mock("../src/middleware/requireSession", () => ({
   requireSession: (_req: any, _res: any, next: any) => next(),
 }));
 
 import { db } from "../src/db";
-import { redis } from "../src/redis";
 import leaderboardRouter from "../src/routes/leaderboard";
 
-function buildApp(userId = "viewer1", username = "gothamchess") {
+function buildApp(userId = "viewer1") {
   const app = express();
   app.use(express.json());
   app.use((req, _res, next) => {
@@ -33,41 +29,45 @@ function buildApp(userId = "viewer1", username = "gothamchess") {
 beforeEach(() => vi.clearAllMocks());
 
 describe("GET /leaderboard", () => {
-  it("returns players ranked by rating descending", async () => {
-    vi.mocked(redis.zrevrangebyscore).mockResolvedValueOnce([
-      "hikaru", "3100",
-      "gothamchess", "2800",
-    ]);
+  it("returns players ranked by rating descending with userId", async () => {
     vi.mocked(db.user.findUnique).mockResolvedValue({
       id: "viewer1",
       chesscomUsername: "gothamchess",
       claimed: true,
       createdAt: new Date(),
     } as any);
-    vi.mocked(db.rating.findMany).mockResolvedValueOnce([
-      { userId: "u1", timeControl: "blitz", rating: 3100, wins: 500, losses: 100, draws: 50, user: { chesscomUsername: "hikaru" } } as any,
-      { userId: "u2", timeControl: "blitz", rating: 2800, wins: 200, losses: 80, draws: 30, user: { chesscomUsername: "gothamchess" } } as any,
-    ]);
+    vi.mocked(db.follow.findMany).mockResolvedValueOnce([
+      {
+        following: {
+          id: "u1",
+          chesscomUsername: "hikaru",
+          ratings: [{ rating: 3100, wins: 500, losses: 100, draws: 50, timeControl: "blitz" }],
+        },
+      },
+      {
+        following: {
+          id: "u2",
+          chesscomUsername: "gothamchess",
+          ratings: [{ rating: 2800, wins: 200, losses: 80, draws: 30, timeControl: "blitz" }],
+        },
+      },
+    ] as any);
 
     const res = await request(buildApp()).get("/leaderboard?tc=blitz");
 
     expect(res.status).toBe(200);
-    expect(res.body[0]).toMatchObject({ rank: 1, username: "hikaru", rating: 3100 });
-    expect(res.body[1]).toMatchObject({ rank: 2, username: "gothamchess", rating: 2800 });
+    expect(res.body[0]).toMatchObject({ rank: 1, username: "hikaru", rating: 3100, userId: "u1" });
+    expect(res.body[1]).toMatchObject({ rank: 2, username: "gothamchess", rating: 2800, userId: "u2" });
   });
 
-  it("defaults to blitz when tc query param is absent", async () => {
-    vi.mocked(redis.zrevrangebyscore).mockResolvedValueOnce([]);
+  it("excludes followed players with no rating for the requested time control", async () => {
     vi.mocked(db.user.findUnique).mockResolvedValue(null);
-    vi.mocked(db.rating.findMany).mockResolvedValueOnce([]);
+    vi.mocked(db.follow.findMany).mockResolvedValueOnce([
+      { following: { id: "u1", chesscomUsername: "hikaru", ratings: [] } },
+    ] as any);
 
-    await request(buildApp()).get("/leaderboard");
-
-    expect(redis.zrevrangebyscore).toHaveBeenCalledWith(
-      "leaderboard:viewer1:blitz",
-      "+inf",
-      "-inf",
-      "WITHSCORES"
-    );
+    const res = await request(buildApp()).get("/leaderboard");
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([]);
   });
 });

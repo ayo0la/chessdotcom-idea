@@ -17,6 +17,7 @@ export interface UserSession {
 
 export interface LeaderboardEntry {
   rank: number;
+  userId: string;
   username: string;
   rating: number;
   wins: number;

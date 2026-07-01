@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import TimeControlTabs from "../components/TimeControlTabs";
 import LeaderboardTable from "../components/LeaderboardTable";
 import { useLeaderboard } from "../hooks/useLeaderboard";
-import { useWebSocket } from "../hooks/useWebSocket";
+import { useRealtime } from "../hooks/useRealtime";
 import { getMe, unfollowPlayer } from "../api";
 export default function Dashboard() {
     const navigate = useNavigate();
@@ -17,19 +17,16 @@ export default function Dashboard() {
             .then(setMe)
             .catch(() => navigate("/"));
     }, [navigate]);
-    useWebSocket((msg) => {
-        if (msg.type === "rating_update" && "timeControl" in msg && msg.timeControl === tc) {
-            const m = msg;
-            update(m.username, m.rating);
-            setDeltas((prev) => ({ ...prev, [m.username]: m.delta }));
-            setTimeout(() => {
-                setDeltas((prev) => {
-                    const next = { ...prev };
-                    delete next[m.username];
-                    return next;
-                });
-            }, 3000);
-        }
+    useRealtime(entries, tc, (ratingUpdate) => {
+        update(ratingUpdate.username, ratingUpdate.rating);
+        setDeltas((prev) => ({ ...prev, [ratingUpdate.username]: ratingUpdate.delta }));
+        setTimeout(() => {
+            setDeltas((prev) => {
+                const next = { ...prev };
+                delete next[ratingUpdate.username];
+                return next;
+            });
+        }, 3000);
     });
     async function handleUnfollow(username) {
         await unfollowPlayer(username);

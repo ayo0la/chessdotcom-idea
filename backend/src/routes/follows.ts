@@ -59,12 +59,15 @@ router.delete("/:username", async (req, res) => {
     return;
   }
 
-  await db.follow.delete({
-    where: {
-      followerId_followingId: { followerId: viewerId, followingId: target.id },
-    },
-  });
-
+  try {
+    await db.follow.delete({
+      where: {
+        followerId_followingId: { followerId: viewerId, followingId: target.id },
+      },
+    });
+  } catch (err: any) {
+    if (err?.code !== "P2025") throw err;
+  }
   res.status(204).end();
 });
 

@@ -106,4 +106,18 @@ describe("DELETE /follows/:username", () => {
       },
     });
   });
+
+  it("returns 204 when follow does not exist (P2025 idempotent delete)", async () => {
+    vi.mocked(db.user.findUnique).mockResolvedValueOnce({
+      id: "target1",
+      chesscomUsername: "hikaru",
+      claimed: false,
+      createdAt: new Date(),
+    } as any);
+    const p2025Error = Object.assign(new Error("Record not found"), { code: "P2025" });
+    vi.mocked(db.follow.delete).mockRejectedValueOnce(p2025Error);
+
+    const res = await request(buildApp()).delete("/follows/hikaru");
+    expect(res.status).toBe(204);
+  });
 });

@@ -36,7 +36,7 @@ describe("useRealtime", () => {
   it("subscribes to Rating changes on mount for the active tab", () => {
     renderHook(() => useRealtime(mockEntries, "blitz", vi.fn()));
 
-    expect(supabase.channel).toHaveBeenCalledWith("ratings-blitz");
+    expect(supabase.channel).toHaveBeenCalledWith(expect.stringContaining("ratings-blitz"));
     expect(mockChannel.on).toHaveBeenCalledWith(
       "postgres_changes",
       expect.objectContaining({ event: "UPDATE", table: "Rating", filter: "timeControl=eq.blitz" }),

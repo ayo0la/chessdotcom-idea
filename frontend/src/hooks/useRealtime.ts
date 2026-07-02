@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useId, useRef } from "react";
 import { supabase } from "../lib/supabase.js";
 import type { LeaderboardEntry } from "../api.js";
 
@@ -15,6 +15,7 @@ export function useRealtime(
   activeTab: string,
   onUpdate: (update: RatingUpdate) => void
 ): void {
+  const id = useId();
   const entriesRef = useRef(entries);
   entriesRef.current = entries;
   const onUpdateRef = useRef(onUpdate);
@@ -22,7 +23,7 @@ export function useRealtime(
 
   useEffect(() => {
     const channel = supabase
-      .channel(`ratings-${activeTab}`)
+      .channel(`ratings-${activeTab}-${id}`)
       .on(
         "postgres_changes",
         {
@@ -55,5 +56,5 @@ export function useRealtime(
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [activeTab]);
+  }, [activeTab, id]);
 }

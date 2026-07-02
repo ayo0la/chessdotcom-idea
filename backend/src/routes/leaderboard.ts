@@ -12,7 +12,7 @@ router.get("/", async (req, res) => {
   const viewer = await db.user.findUnique({ where: { id: viewerId } });
 
   const follows = await db.follow.findMany({
-    where: { followerId: viewerId },
+    where: { followerId: viewerId, followingId: { not: viewerId } },
     include: {
       following: {
         include: {

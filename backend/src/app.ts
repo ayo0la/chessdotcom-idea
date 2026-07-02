@@ -7,6 +7,10 @@ import followsRouter from "./routes/follows.js";
 import leaderboardRouter from "./routes/leaderboard.js";
 import cronRouter from "./routes/cron.js";
 
+if (process.env.NODE_ENV === "production" && !process.env.CRON_SECRET) {
+  throw new Error("CRON_SECRET must be set in production");
+}
+
 export const app = express();
 
 app.use(express.json());

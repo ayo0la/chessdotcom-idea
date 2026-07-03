@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { fetchPlayerExists, fetchPlayerRatings } from "../src/chesscom";
+import {
+  fetchPlayerExists,
+  fetchPlayerRatings,
+  fetchMonthlyGames,
+} from "../src/chesscom";
 
 const mockFetch = vi.fn();
 vi.stubGlobal("fetch", mockFetch);
@@ -74,5 +78,29 @@ describe("fetchPlayerRatings", () => {
   it("returns empty array when API fails", async () => {
     mockFetch.mockResolvedValueOnce({ ok: false });
     expect(await fetchPlayerRatings("hikaru")).toEqual([]);
+  });
+});
+
+describe("fetchMonthlyGames", () => {
+  it("fetches the monthly archive with a zero-padded month", async () => {
+    const games = [{ url: "u", end_time: 1 }];
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ games }) });
+
+    const result = await fetchMonthlyGames("hikaru", 2026, 7);
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      "https://api.chess.com/pub/player/hikaru/games/2026/07"
+    );
+    expect(result).toEqual(games);
+  });
+
+  it("returns empty array when the API fails", async () => {
+    mockFetch.mockResolvedValueOnce({ ok: false });
+    expect(await fetchMonthlyGames("hikaru", 2026, 7)).toEqual([]);
+  });
+
+  it("returns empty array when the archive has no games field", async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+    expect(await fetchMonthlyGames("hikaru", 2026, 7)).toEqual([]);
   });
 });

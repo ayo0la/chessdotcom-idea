@@ -16,6 +16,7 @@ model User {
   following        Follow[] @relation("follower")
   followers        Follow[] @relation("following")
   ratings          Rating[]
+  tiltEvents       TiltEvent[]
 }
 
 model Follow {
@@ -26,6 +27,18 @@ model Follow {
   following   User     @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
 
   @@id([followerId, followingId])
+}
+
+model TiltEvent {
+  id         String   @id @default(cuid())
+  userId     String
+  lossCount  Int
+  rushing    Boolean  @default(false)
+  suggestion String
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
 }
 
 model Rating {

@@ -29,6 +29,23 @@ const TC_MAP: Array<[TimeControl, keyof ChesscomStats]> = [
   ["classical", "chess_daily"],
 ];
 
+export interface MonthlyGamePlayer {
+  username: string;
+  result: string;
+  rating: number;
+}
+
+export interface MonthlyGame {
+  url: string;
+  pgn?: string;
+  time_control: string;
+  time_class: string;
+  end_time: number;
+  eco?: string;
+  white: MonthlyGamePlayer;
+  black: MonthlyGamePlayer;
+}
+
 export async function fetchPlayerExists(username: string): Promise<boolean> {
   const res = await fetch(`${BASE}/player/${username}`);
   return res.ok;
@@ -52,4 +69,17 @@ export async function fetchPlayerRatings(
       draws: entry.record.draw,
     };
   });
+}
+
+export async function fetchMonthlyGames(
+  username: string,
+  year: number,
+  month: number
+): Promise<MonthlyGame[]> {
+  const mm = String(month).padStart(2, "0");
+  const res = await fetch(`${BASE}/player/${username}/games/${year}/${mm}`);
+  if (!res.ok) return [];
+
+  const data: { games?: MonthlyGame[] } = await res.json();
+  return data.games ?? [];
 }

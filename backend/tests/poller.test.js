@@ -1,0 +1,87 @@
+import { describe, it, expect, vi, beforeEach } from "vitest";
+vi.mock("../src/db", () => ({
+    db: {
+        user: { findMany: vi.fn() },
+        rating: { upsert: vi.fn() },
+    },
+}));
+vi.mock("../src/chesscom", () => ({
+    fetchPlayerRatings: vi.fn(),
+}));
+vi.mock("../src/services/analysis/tilt-detector", () => ({
+    checkTiltForUser: vi.fn(),
+}));
+import { db } from "../src/db";
+import { fetchPlayerRatings } from "../src/chesscom";
+import { checkTiltForUser } from "../src/services/analysis/tilt-detector";
+import { pollAllRatings } from "../src/poller";
+const fakeUser = {
+    id: "user1",
+    chesscomUsername: "hikaru",
+    claimed: true,
+    createdAt: new Date(),
+    ratings: [
+        {
+            id: "r1",
+            userId: "user1",
+            timeControl: "blitz",
+            rating: 3100,
+            wins: 500,
+            losses: 100,
+            draws: 50,
+            updatedAt: new Date(),
+        },
+    ],
+};
+beforeEach(() => vi.clearAllMocks());
+describe("pollAllRatings", () => {
+    it("upserts Postgres rating when rating has changed", async () => {
+        vi.mocked(db.user.findMany).mockResolvedValueOnce([fakeUser]);
+        vi.mocked(fetchPlayerRatings).mockResolvedValueOnce([
+            { timeControl: "blitz", rating: 3112, wins: 501, losses: 100, draws: 50 },
+        ]);
+        vi.mocked(db.rating.upsert).mockResolvedValueOnce({});
+        await pollAllRatings();
+        expect(db.rating.upsert).toHaveBeenCalledWith(expect.objectContaining({
+            where: {
+                userId_timeControl: { userId: "user1", timeControl: "blitz" },
+            },
+            update: expect.objectContaining({ rating: 3112 }),
+        }));
+    });
+    it("skips upsert when rating has not changed", async () => {
+        vi.mocked(db.user.findMany).mockResolvedValueOnce([fakeUser]);
+        vi.mocked(fetchPlayerRatings).mockResolvedValueOnce([
+            { timeControl: "blitz", rating: 3100, wins: 500, losses: 100, draws: 50 },
+        ]);
+        await pollAllRatings();
+        expect(db.rating.upsert).not.toHaveBeenCalled();
+    });
+    it("runs the tilt check when a user's losses increase", async () => {
+        vi.mocked(db.user.findMany).mockResolvedValueOnce([fakeUser]);
+        vi.mocked(fetchPlayerRatings).mockResolvedValueOnce([
+            { timeControl: "blitz", rating: 3090, wins: 500, losses: 101, draws: 50 },
+        ]);
+        vi.mocked(db.rating.upsert).mockResolvedValueOnce({});
+        await pollAllRatings();
+        expect(checkTiltForUser).toHaveBeenCalledWith(expect.objectContaining({ id: "user1", chesscomUsername: "hikaru" }));
+    });
+    it("does not run the tilt check when losses are unchanged", async () => {
+        vi.mocked(db.user.findMany).mockResolvedValueOnce([fakeUser]);
+        vi.mocked(fetchPlayerRatings).mockResolvedValueOnce([
+            { timeControl: "blitz", rating: 3112, wins: 501, losses: 100, draws: 50 },
+        ]);
+        vi.mocked(db.rating.upsert).mockResolvedValueOnce({});
+        await pollAllRatings();
+        expect(checkTiltForUser).not.toHaveBeenCalled();
+    });
+    it("does not fail the poll when the tilt check throws", async () => {
+        vi.mocked(db.user.findMany).mockResolvedValueOnce([fakeUser]);
+        vi.mocked(fetchPlayerRatings).mockResolvedValueOnce([
+            { timeControl: "blitz", rating: 3090, wins: 500, losses: 101, draws: 50 },
+        ]);
+        vi.mocked(db.rating.upsert).mockResolvedValueOnce({});
+        vi.mocked(checkTiltForUser).mockRejectedValueOnce(new Error("chess.com down"));
+        await expect(pollAllRatings()).resolves.toBeUndefined();
+    });
+});

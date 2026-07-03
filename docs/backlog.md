@@ -25,17 +25,23 @@ No credit card required across the board.
 
 ## Next: Tilt Detector
 
-Detect when a user is tilting (loss sequences + rushing) and push a real-time warning via WebSocket. Runs on the existing polling infrastructure.
+Detect when a user is tilting (loss sequences + rushing) and push a real-time warning via Supabase Realtime. Runs on the existing polling infrastructure.
+
+> Spec updated 2026-07-02: originally written for the custom WebSocket fan-out, which was
+> removed in the Supabase Realtime refactor. The warning now travels as a `TiltEvent` row
+> insert that Supabase Realtime broadcasts to the subscribed client (same pattern as
+> `Rating` updates), instead of a custom WS message.
 
 **Data signals:**
-- 2+ losses in the last 45 minutes (Chess.com `/games` endpoint or rating delta tracking)
-- Move speed increasing across consecutive games (avg seconds/move from PGN)
+- 2+ losses in the last 45 minutes (Chess.com monthly games archive)
+- Move speed increasing across consecutive games (avg seconds/move from PGN `%clk` tags)
 
 **Implementation:**
-- `backend/services/analysis/tilt-detector.ts` — stateful loss-sequence monitor per user
-- Extend `poller.ts` to call tilt check after each rating update
-- New WS message type: `{ type: "tilt_warning", lossCount: number, suggestion: string }`
-- Frontend: `TiltBanner.tsx` — dismissible banner on Dashboard when tilt warning received
+- `backend/src/services/analysis/tilt-detector.ts` — loss-sequence monitor per user; state lives in the `TiltEvent` table (a recent event suppresses duplicates, so it survives serverless restarts)
+- Extend `poller.ts` to run the tilt check when a user's loss count increases
+- `TiltEvent` Prisma model (`userId`, `lossCount`, `rushing`, `suggestion`, `createdAt`); INSERT is broadcast via the `supabase_realtime` publication (migration adds the table to the publication when it exists)
+- `GET /me/tilt` — latest tilt event from the last 45 minutes, so a page refresh keeps the banner
+- Frontend: `TiltBanner.tsx` — dismissible banner on Dashboard, driven by a `postgres_changes` INSERT subscription filtered by `userId`
 
 **Effort:** ~2 days
 

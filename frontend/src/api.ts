@@ -26,6 +26,13 @@ export interface LeaderboardEntry {
   isMe: boolean;
 }
 
+export interface TiltWarning {
+  lossCount: number;
+  rushing: boolean;
+  suggestion: string;
+  createdAt?: string;
+}
+
 export function claimUsername(username: string): Promise<UserSession> {
   return apiFetch("/auth/claim", {
     method: "POST",
@@ -35,6 +42,10 @@ export function claimUsername(username: string): Promise<UserSession> {
 
 export function getMe(): Promise<UserSession> {
   return apiFetch("/me");
+}
+
+export function getTiltStatus(): Promise<TiltWarning | null> {
+  return apiFetch("/me/tilt");
 }
 
 export function getLeaderboard(tc: string): Promise<LeaderboardEntry[]> {

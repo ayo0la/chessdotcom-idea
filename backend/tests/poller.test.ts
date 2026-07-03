@@ -9,9 +9,13 @@ vi.mock("../src/db", () => ({
 vi.mock("../src/chesscom", () => ({
   fetchPlayerRatings: vi.fn(),
 }));
+vi.mock("../src/services/analysis/tilt-detector", () => ({
+  checkTiltForUser: vi.fn(),
+}));
 
 import { db } from "../src/db";
 import { fetchPlayerRatings } from "../src/chesscom";
+import { checkTiltForUser } from "../src/services/analysis/tilt-detector";
 import { pollAllRatings } from "../src/poller";
 
 const fakeUser = {
@@ -64,5 +68,42 @@ describe("pollAllRatings", () => {
     await pollAllRatings();
 
     expect(db.rating.upsert).not.toHaveBeenCalled();
+  });
+
+  it("runs the tilt check when a user's losses increase", async () => {
+    vi.mocked(db.user.findMany).mockResolvedValueOnce([fakeUser] as any);
+    vi.mocked(fetchPlayerRatings).mockResolvedValueOnce([
+      { timeControl: "blitz", rating: 3090, wins: 500, losses: 101, draws: 50 },
+    ]);
+    vi.mocked(db.rating.upsert).mockResolvedValueOnce({} as any);
+
+    await pollAllRatings();
+
+    expect(checkTiltForUser).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "user1", chesscomUsername: "hikaru" })
+    );
+  });
+
+  it("does not run the tilt check when losses are unchanged", async () => {
+    vi.mocked(db.user.findMany).mockResolvedValueOnce([fakeUser] as any);
+    vi.mocked(fetchPlayerRatings).mockResolvedValueOnce([
+      { timeControl: "blitz", rating: 3112, wins: 501, losses: 100, draws: 50 },
+    ]);
+    vi.mocked(db.rating.upsert).mockResolvedValueOnce({} as any);
+
+    await pollAllRatings();
+
+    expect(checkTiltForUser).not.toHaveBeenCalled();
+  });
+
+  it("does not fail the poll when the tilt check throws", async () => {
+    vi.mocked(db.user.findMany).mockResolvedValueOnce([fakeUser] as any);
+    vi.mocked(fetchPlayerRatings).mockResolvedValueOnce([
+      { timeControl: "blitz", rating: 3090, wins: 500, losses: 101, draws: 50 },
+    ]);
+    vi.mocked(db.rating.upsert).mockResolvedValueOnce({} as any);
+    vi.mocked(checkTiltForUser).mockRejectedValueOnce(new Error("chess.com down"));
+
+    await expect(pollAllRatings()).resolves.toBeUndefined();
   });
 });

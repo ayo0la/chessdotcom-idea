@@ -19,4 +19,13 @@ router.get("/", async (req, res) => {
   res.json(user);
 });
 
+router.get("/tilt", async (req, res) => {
+  const since = new Date(Date.now() - 45 * 60 * 1000);
+  const event = await db.tiltEvent.findFirst({
+    where: { userId: req.session.userId!, createdAt: { gte: since } },
+    orderBy: { createdAt: "desc" },
+  });
+  res.json(event ?? null);
+});
+
 export default router;

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import TimeControlTabs, { type TimeControl } from "../components/TimeControlTabs";
 import LeaderboardTable from "../components/LeaderboardTable";
+import TiltBanner from "../components/TiltBanner";
 import { useLeaderboard } from "../hooks/useLeaderboard";
 import { useRealtime } from "../hooks/useRealtime";
 import { getMe, unfollowPlayer, type UserSession } from "../api";
@@ -49,6 +50,7 @@ export default function Dashboard() {
           + Follow players
         </Link>
       </div>
+      {me && <TiltBanner userId={me.userId} />}
       <TimeControlTabs active={tc} onChange={setTc} />
       {loading ? (
         <p className="text-gray-500 text-sm">Loading...</p>

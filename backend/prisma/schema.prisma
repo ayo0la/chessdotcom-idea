@@ -19,6 +19,8 @@ model User {
   followers        Follow[] @relation("following")
   ratings          Rating[]
   tiltEvents       TiltEvent[]
+  debriefs         Debrief[]
+  debriefPrompts   DebriefPrompt[]
 }
 
 model Follow {
@@ -40,6 +42,30 @@ model TiltEvent {
   createdAt  DateTime @default(now())
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId, createdAt])
+}
+
+model Debrief {
+  id        String   @id @default(cuid())
+  userId    String
+  gameId    String
+  answers   Json
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, gameId])
+  @@index([userId, createdAt])
+}
+
+model DebriefPrompt {
+  id        String   @id @default(cuid())
+  userId    String
+  gameId    String
+  gameUrl   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, gameId])
   @@index([userId, createdAt])
 }
 

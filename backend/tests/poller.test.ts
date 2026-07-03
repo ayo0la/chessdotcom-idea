@@ -12,10 +12,14 @@ vi.mock("../src/chesscom", () => ({
 vi.mock("../src/services/analysis/tilt-detector", () => ({
   checkTiltForUser: vi.fn(),
 }));
+vi.mock("../src/services/analysis/debrief-prompter", () => ({
+  promptDebriefForLatestLoss: vi.fn(),
+}));
 
 import { db } from "../src/db";
 import { fetchPlayerRatings } from "../src/chesscom";
 import { checkTiltForUser } from "../src/services/analysis/tilt-detector";
+import { promptDebriefForLatestLoss } from "../src/services/analysis/debrief-prompter";
 import { pollAllRatings } from "../src/poller";
 
 const fakeUser = {
@@ -81,6 +85,9 @@ describe("pollAllRatings", () => {
 
     expect(checkTiltForUser).toHaveBeenCalledWith(
       expect.objectContaining({ id: "user1", chesscomUsername: "hikaru" })
+    );
+    expect(promptDebriefForLatestLoss).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "user1" })
     );
   });
 

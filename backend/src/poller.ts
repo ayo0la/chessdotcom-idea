@@ -1,6 +1,7 @@
 import { db } from "./db.js";
 import { fetchPlayerRatings } from "./chesscom.js";
 import { checkTiltForUser } from "./services/analysis/tilt-detector.js";
+import { promptDebriefForLatestLoss } from "./services/analysis/debrief-prompter.js";
 
 export async function pollAllRatings(): Promise<void> {
   const users = await db.user.findMany({ include: { ratings: true } });
@@ -34,6 +35,11 @@ export async function pollAllRatings(): Promise<void> {
         await checkTiltForUser(user);
       } catch {
         // tilt analysis is best-effort; never fail the poll over it
+      }
+      try {
+        await promptDebriefForLatestLoss(user);
+      } catch {
+        // debrief prompting is best-effort too
       }
     }
   }

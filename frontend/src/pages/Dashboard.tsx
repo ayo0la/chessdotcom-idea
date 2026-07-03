@@ -5,9 +5,17 @@ import LeaderboardTable from "../components/LeaderboardTable";
 import TiltBanner from "../components/TiltBanner";
 import OpeningDNA from "../components/OpeningDNA";
 import StyleCard from "../components/StyleCard";
+import DebriefModal from "../components/DebriefModal";
+import DebriefInsights from "../components/DebriefInsights";
 import { useLeaderboard } from "../hooks/useLeaderboard";
 import { useRealtime } from "../hooks/useRealtime";
-import { getMe, unfollowPlayer, type UserSession } from "../api";
+import {
+  getMe,
+  getDebriefSummary,
+  unfollowPlayer,
+  type DebriefSummary,
+  type UserSession,
+} from "../api";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -15,12 +23,26 @@ export default function Dashboard() {
   const { entries, loading, update, remove } = useLeaderboard(tc);
   const [deltas, setDeltas] = useState<Record<string, number>>({});
   const [me, setMe] = useState<UserSession | null>(null);
+  const [debriefSummary, setDebriefSummary] = useState<DebriefSummary | null>(null);
 
   useEffect(() => {
     getMe()
       .then(setMe)
       .catch(() => navigate("/"));
   }, [navigate]);
+
+  useEffect(() => {
+    if (!me) return;
+    getDebriefSummary()
+      .then(setDebriefSummary)
+      .catch(() => {});
+  }, [me]);
+
+  function refreshDebriefSummary() {
+    getDebriefSummary()
+      .then(setDebriefSummary)
+      .catch(() => {});
+  }
 
   useRealtime(entries, tc, (ratingUpdate) => {
     update(ratingUpdate.username, ratingUpdate.rating);
@@ -45,7 +67,14 @@ export default function Dashboard() {
         <div>
           <h1 className="text-2xl font-bold">Leaderboard</h1>
           {me && (
-            <p className="text-gray-400 text-sm mt-1">Signed in as {me.chesscomUsername}</p>
+            <p className="text-gray-400 text-sm mt-1">
+              Signed in as {me.chesscomUsername}
+              {debriefSummary && debriefSummary.streak > 0 && (
+                <span className="ml-2 text-amber-400">
+                  🔥 {debriefSummary.streak}-day debrief streak
+                </span>
+              )}
+            </p>
           )}
         </div>
         <Link to="/search" className="text-green-400 text-sm hover:underline">
@@ -73,6 +102,8 @@ export default function Dashboard() {
           friends={entries.filter((e) => !e.isMe).map((e) => e.username)}
         />
       )}
+      {debriefSummary && <DebriefInsights count={debriefSummary.count} />}
+      {me && <DebriefModal userId={me.userId} onSubmitted={refreshDebriefSummary} />}
     </main>
   );
 }

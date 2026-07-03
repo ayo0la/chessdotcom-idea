@@ -106,3 +106,44 @@ export function compareOpenings(username: string): Promise<{ narrative: string }
     body: JSON.stringify({ username }),
   });
 }
+
+export interface DebriefPromptInfo {
+  id: string;
+  gameId: string;
+  gameUrl: string;
+}
+
+export interface DebriefAnswers {
+  opening: string;
+  phase: string;
+  losingMoment: string;
+  cause: string;
+  hadPlan: string;
+  tooFast: string;
+  emotion: string;
+  nextTime: string;
+}
+
+export interface DebriefSummary {
+  count: number;
+  streak: number;
+  narrative: string | null;
+}
+
+export function getDebriefPrompt(): Promise<DebriefPromptInfo | null> {
+  return apiFetch("/me/debrief-prompt");
+}
+
+export async function submitDebrief(
+  gameId: string,
+  answers: DebriefAnswers
+): Promise<void> {
+  await apiFetch("/me/debriefs", {
+    method: "POST",
+    body: JSON.stringify({ gameId, answers }),
+  });
+}
+
+export function getDebriefSummary(narrative = false): Promise<DebriefSummary> {
+  return apiFetch(`/me/debriefs/summary${narrative ? "?narrative=1" : ""}`);
+}

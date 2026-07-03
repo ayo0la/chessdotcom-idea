@@ -21,9 +21,21 @@ No credit card required across the board.
 - [ ] Smoke test: claim username, follow a player, check leaderboard loads
 - [ ] Verify WebSocket works (browser DevTools > Network > WS tab)
 
+> Deploy notes added 2026-07-02 (after the analysis features shipped):
+> - This checklist predates the Supabase Realtime refactor — the DB must be Supabase
+>   (not Neon) for realtime pushes, and no always-on WS server is needed anymore.
+> - Three new migrations to apply via `npx prisma migrate deploy`: `add_tilt_event`,
+>   `add_style_profile`, `add_debriefs`. On Supabase they also add `TiltEvent` and
+>   `DebriefPrompt` to the `supabase_realtime` publication automatically (guarded,
+>   no-op elsewhere) — verify the migration role has permission, or add the tables
+>   via the dashboard like `Rating`.
+> - New backend env vars: `ANTHROPIC_API_KEY` (required for the Opening DNA compare
+>   and debrief diagnosis endpoints; they return 503 without it) and optional
+>   `CLAUDE_MODEL` (defaults to `claude-opus-4-8`).
+
 ---
 
-## Next: Tilt Detector
+## Done: Tilt Detector (shipped 2026-07-02)
 
 Detect when a user is tilting (loss sequences + rushing) and push a real-time warning via Supabase Realtime. Runs on the existing polling infrastructure.
 
@@ -47,7 +59,7 @@ Detect when a user is tilting (loss sequences + rushing) and push a real-time wa
 
 ---
 
-## Then: Opening DNA
+## Done: Opening DNA (shipped 2026-07-02)
 
 Aggregate a user's Chess.com game history by ECO opening code, compute win rates, surface weapons and vulnerabilities. Use Claude API to generate a friend-comparison narrative.
 
@@ -64,7 +76,7 @@ Aggregate a user's Chess.com game history by ECO opening code, compute win rates
 
 ---
 
-## Later: Play Style Profile
+## Done: Play Style Profile (shipped 2026-07-02)
 
 Classify each user on three axes from PGN analysis: Tactical vs. Positional, Aggressive vs. Defensive, Time Manager vs. Scrambler. Show as a profile card on the leaderboard.
 
@@ -79,7 +91,7 @@ Classify each user on three axes from PGN analysis: Tactical vs. Positional, Agg
 
 ---
 
-## Later: Post-Game Debrief
+## Done: Post-Game Debrief (shipped 2026-07-02)
 
 Condensed (8-question) version of the Rating Breakout Analysis Sheet triggered after each loss. Answers accumulate to surface patterns. Claude generates a diagnosis after 10+ debriefs.
 

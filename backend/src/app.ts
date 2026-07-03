@@ -6,6 +6,7 @@ import playersRouter from "./routes/players.js";
 import followsRouter from "./routes/follows.js";
 import leaderboardRouter from "./routes/leaderboard.js";
 import cronRouter from "./routes/cron.js";
+import analysisRouter from "./routes/analysis.js";
 
 if (process.env.NODE_ENV === "production" && !process.env.CRON_SECRET) {
   throw new Error("CRON_SECRET must be set in production");
@@ -21,3 +22,4 @@ app.use("/players", playersRouter);
 app.use("/follows", followsRouter);
 app.use("/leaderboard", leaderboardRouter);
 app.use("/poll", cronRouter);
+app.use("/analysis", analysisRouter);

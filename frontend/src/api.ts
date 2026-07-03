@@ -63,3 +63,30 @@ export function unfollowPlayer(username: string): Promise<void> {
 export function searchPlayer(username: string): Promise<{ username: string; ratings: Array<{ timeControl: string; rating: number }> }> {
   return apiFetch(`/players/${username}`);
 }
+
+export interface OpeningStat {
+  eco: string;
+  name: string;
+  games: number;
+  wins: number;
+  losses: number;
+  draws: number;
+  winRate: number;
+}
+
+export interface OpeningDnaResponse {
+  username: string;
+  totalGames: number;
+  openings: OpeningStat[];
+}
+
+export function getOpenings(username: string): Promise<OpeningDnaResponse> {
+  return apiFetch(`/players/${username}/openings`);
+}
+
+export function compareOpenings(username: string): Promise<{ narrative: string }> {
+  return apiFetch("/analysis/compare", {
+    method: "POST",
+    body: JSON.stringify({ username }),
+  });
+}

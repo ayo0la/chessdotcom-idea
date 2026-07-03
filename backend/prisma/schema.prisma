@@ -9,10 +9,12 @@ datasource db {
 }
 
 model User {
-  id               String   @id @default(cuid())
-  chesscomUsername String   @unique
-  claimed          Boolean  @default(false)
-  createdAt        DateTime @default(now())
+  id               String    @id @default(cuid())
+  chesscomUsername String    @unique
+  claimed          Boolean   @default(false)
+  createdAt        DateTime  @default(now())
+  styleProfile     Json?
+  styleComputedAt  DateTime?
   following        Follow[] @relation("follower")
   followers        Follow[] @relation("following")
   ratings          Rating[]

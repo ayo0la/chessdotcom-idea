@@ -84,6 +84,22 @@ export function getOpenings(username: string): Promise<OpeningDnaResponse> {
   return apiFetch(`/players/${username}/openings`);
 }
 
+export interface StyleProfile {
+  tactical: number;
+  aggressive: number;
+  timeManagement: number;
+  labels: {
+    style: "Tactical" | "Positional";
+    approach: "Aggressive" | "Defensive";
+    clock: "Time Manager" | "Scrambler";
+  };
+  gamesAnalyzed: number;
+}
+
+export function getStyleProfile(username: string): Promise<StyleProfile> {
+  return apiFetch(`/players/${username}/style`);
+}
+
 export function compareOpenings(username: string): Promise<{ narrative: string }> {
   return apiFetch("/analysis/compare", {
     method: "POST",

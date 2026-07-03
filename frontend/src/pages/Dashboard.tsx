@@ -4,6 +4,7 @@ import TimeControlTabs, { type TimeControl } from "../components/TimeControlTabs
 import LeaderboardTable from "../components/LeaderboardTable";
 import TiltBanner from "../components/TiltBanner";
 import OpeningDNA from "../components/OpeningDNA";
+import StyleCard from "../components/StyleCard";
 import { useLeaderboard } from "../hooks/useLeaderboard";
 import { useRealtime } from "../hooks/useRealtime";
 import { getMe, unfollowPlayer, type UserSession } from "../api";
@@ -65,6 +66,7 @@ export default function Dashboard() {
       ) : (
         <LeaderboardTable entries={entries} deltas={deltas} onUnfollow={handleUnfollow} />
       )}
+      {me && <StyleCard username={me.chesscomUsername} />}
       {me && (
         <OpeningDNA
           me={me.chesscomUsername}

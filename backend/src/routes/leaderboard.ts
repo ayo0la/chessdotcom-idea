@@ -1,13 +1,13 @@
 import { Router } from "express";
 import { db } from "../db.js";
-import { requireSession } from "../middleware/requireSession.js";
+import { requireAuth, requireLinkedUser } from "../middleware/requireAuth.js";
 
 const router = Router();
-router.use(requireSession);
+router.use(requireAuth, requireLinkedUser);
 
 router.get("/", async (req, res) => {
   const tc = (req.query.tc as string) || "blitz";
-  const viewerId = req.session.userId!;
+  const viewerId = req.userId!;
 
   const viewer = await db.user.findUnique({ where: { id: viewerId } });
 

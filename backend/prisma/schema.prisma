@@ -12,6 +12,7 @@ model User {
   id               String    @id @default(cuid())
   chesscomUsername String    @unique
   claimed          Boolean   @default(false)
+  authId           String?   @unique
   createdAt        DateTime  @default(now())
   styleProfile     Json?
   styleComputedAt  DateTime?
@@ -43,6 +44,13 @@ model TiltEvent {
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
+}
+
+model PendingLink {
+  authId    String   @id
+  username  String
+  code      String
+  createdAt DateTime @default(now())
 }
 
 model Debrief {

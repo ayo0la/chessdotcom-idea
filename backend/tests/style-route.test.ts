@@ -45,7 +45,7 @@ function buildApp() {
   const app = express();
   app.use(express.json());
   app.use((req, _res, next) => {
-    (req as any).session = { userId: "user1" };
+    (req as any).userId = "user1";
     next();
   });
   app.use("/players", playersRouter);

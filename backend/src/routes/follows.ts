@@ -1,14 +1,14 @@
 import { Router } from "express";
 import { db } from "../db.js";
-import { requireSession } from "../middleware/requireSession.js";
+import { requireAuth, requireLinkedUser } from "../middleware/requireAuth.js";
 import { fetchPlayerExists, fetchPlayerRatings } from "../chesscom.js";
 
 const router = Router();
-router.use(requireSession);
+router.use(requireAuth, requireLinkedUser);
 
 router.post("/:username", async (req, res) => {
   const { username } = req.params;
-  const viewerId = req.session.userId!;
+  const viewerId = req.userId!;
 
   const exists = await fetchPlayerExists(username.toLowerCase());
   if (!exists) {
@@ -49,7 +49,7 @@ router.post("/:username", async (req, res) => {
 
 router.delete("/:username", async (req, res) => {
   const { username } = req.params;
-  const viewerId = req.session.userId!;
+  const viewerId = req.userId!;
 
   const target = await db.user.findUnique({
     where: { chesscomUsername: username.toLowerCase() },

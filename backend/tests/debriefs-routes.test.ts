@@ -2,6 +2,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import express from "express";
 import request from "supertest";
 
+vi.mock("../src/middleware/requireAuth", () => ({
+  requireAuth: (req: any, res: any, next: any) =>
+    req.userId ? next() : res.status(401).json({ error: "Unauthorized" }),
+  requireLinkedUser: (_req: any, _res: any, next: any) => next(),
+}));
 vi.mock("../src/db", () => ({
   db: {
     user: { findUnique: vi.fn() },
@@ -34,7 +39,7 @@ function buildApp(userId?: string) {
   const app = express();
   app.use(express.json());
   app.use((req, _res, next) => {
-    (req as any).session = { userId };
+    (req as any).userId = userId;
     next();
   });
   app.use("/me", meRouter);

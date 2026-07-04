@@ -1,6 +1,5 @@
 import express from "express";
-import { sessionParser } from "./session.js";
-import authRouter from "./routes/auth.js";
+import accountRouter from "./routes/account.js";
 import meRouter from "./routes/me.js";
 import playersRouter from "./routes/players.js";
 import followsRouter from "./routes/follows.js";
@@ -14,12 +13,11 @@ if (process.env.NODE_ENV === "production" && !process.env.CRON_SECRET) {
 
 export const app = express();
 
-// Behind Vercel's proxy; required for secure session cookies
+// Behind Vercel's proxy; makes req.ip and protocol detection correct
 app.set("trust proxy", 1);
 
 app.use(express.json());
-app.use(sessionParser);
-app.use("/auth", authRouter);
+app.use("/account", accountRouter);
 app.use("/me", meRouter);
 app.use("/players", playersRouter);
 app.use("/follows", followsRouter);

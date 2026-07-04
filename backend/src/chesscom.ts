@@ -51,6 +51,20 @@ export async function fetchPlayerExists(username: string): Promise<boolean> {
   return res.ok;
 }
 
+export interface PlayerProfile {
+  username?: string;
+  name?: string;
+  location?: string;
+}
+
+export async function fetchPlayerProfile(
+  username: string
+): Promise<PlayerProfile | null> {
+  const res = await fetch(`${BASE}/player/${username}`);
+  if (!res.ok) return null;
+  return (await res.json()) as PlayerProfile;
+}
+
 export async function fetchPlayerRatings(
   username: string
 ): Promise<PlayerRating[]> {

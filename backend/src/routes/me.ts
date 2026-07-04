@@ -1,18 +1,18 @@
 import { Router } from "express";
 import type { Prisma } from "@prisma/client";
 import { db } from "../db.js";
-import { requireSession } from "../middleware/requireSession.js";
+import { requireAuth, requireLinkedUser } from "../middleware/requireAuth.js";
 import { computeStreak } from "../services/debriefs.js";
 import { claudeEnabled, generateText } from "../services/claude.js";
 
 const DIAGNOSIS_MIN_DEBRIEFS = 10;
 
 const router = Router();
-router.use(requireSession);
+router.use(requireAuth, requireLinkedUser);
 
 router.get("/", async (req, res) => {
   const user = await db.user.findUnique({
-    where: { id: req.session.userId! },
+    where: { id: req.userId! },
     include: { ratings: true },
   });
 
@@ -27,7 +27,7 @@ router.get("/", async (req, res) => {
 router.get("/tilt", async (req, res) => {
   const since = new Date(Date.now() - 45 * 60 * 1000);
   const event = await db.tiltEvent.findFirst({
-    where: { userId: req.session.userId!, createdAt: { gte: since } },
+    where: { userId: req.userId!, createdAt: { gte: since } },
     orderBy: { createdAt: "desc" },
   });
   res.json(event ?? null);
@@ -36,7 +36,7 @@ router.get("/tilt", async (req, res) => {
 router.get("/debrief-prompt", async (req, res) => {
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
   const prompt = await db.debriefPrompt.findFirst({
-    where: { userId: req.session.userId!, createdAt: { gte: since } },
+    where: { userId: req.userId!, createdAt: { gte: since } },
     orderBy: { createdAt: "desc" },
   });
   if (!prompt) {
@@ -44,7 +44,7 @@ router.get("/debrief-prompt", async (req, res) => {
     return;
   }
   const answered = await db.debrief.findFirst({
-    where: { userId: req.session.userId!, gameId: prompt.gameId },
+    where: { userId: req.userId!, gameId: prompt.gameId },
   });
   res.json(answered ? null : prompt);
 });
@@ -60,7 +60,7 @@ router.post("/debriefs", async (req, res) => {
   }
 
   const existing = await db.debrief.findFirst({
-    where: { userId: req.session.userId!, gameId },
+    where: { userId: req.userId!, gameId },
   });
   if (existing) {
     res.status(409).json({ error: "Debrief already submitted for this game" });
@@ -69,7 +69,7 @@ router.post("/debriefs", async (req, res) => {
 
   await db.debrief.create({
     data: {
-      userId: req.session.userId!,
+      userId: req.userId!,
       gameId,
       answers: answers as Prisma.InputJsonValue,
     },
@@ -78,7 +78,7 @@ router.post("/debriefs", async (req, res) => {
 });
 
 router.get("/debriefs/summary", async (req, res) => {
-  const userId = req.session.userId!;
+  const userId = req.userId!;
   const count = await db.debrief.count({ where: { userId } });
   const recent = await db.debrief.findMany({
     where: { userId },

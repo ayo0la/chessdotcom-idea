@@ -9,7 +9,9 @@ import DebriefModal from "../components/DebriefModal";
 import DebriefInsights from "../components/DebriefInsights";
 import { useLeaderboard } from "../hooks/useLeaderboard";
 import { useRealtime } from "../hooks/useRealtime";
+import { supabase } from "../lib/supabase";
 import {
+  ApiError,
   getMe,
   getDebriefSummary,
   unfollowPlayer,
@@ -28,8 +30,15 @@ export default function Dashboard() {
   useEffect(() => {
     getMe()
       .then(setMe)
-      .catch(() => navigate("/"));
+      .catch((err) => {
+        navigate(err instanceof ApiError && err.status === 403 ? "/link" : "/");
+      });
   }, [navigate]);
+
+  async function handleSignOut() {
+    await supabase.auth.signOut();
+    navigate("/");
+  }
 
   useEffect(() => {
     if (!me) return;
@@ -77,9 +86,17 @@ export default function Dashboard() {
             </p>
           )}
         </div>
-        <Link to="/search" className="text-green-400 text-sm hover:underline">
-          + Follow players
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link to="/search" className="text-green-400 text-sm hover:underline">
+            + Follow players
+          </Link>
+          <button
+            onClick={handleSignOut}
+            className="text-gray-500 text-sm hover:text-gray-300"
+          >
+            Sign out
+          </button>
+        </div>
       </div>
       {me && <TiltBanner userId={me.userId} />}
       <TimeControlTabs active={tc} onChange={setTc} />

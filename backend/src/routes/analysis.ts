@@ -1,12 +1,12 @@
 import { Router } from "express";
 import { db } from "../db.js";
-import { requireSession } from "../middleware/requireSession.js";
+import { requireAuth, requireLinkedUser } from "../middleware/requireAuth.js";
 import { fetchRecentGames } from "../services/analysis/pgn-fetcher.js";
 import { computeOpeningDna, type OpeningDna } from "../services/analysis/opening-dna.js";
 import { claudeEnabled, generateText } from "../services/claude.js";
 
 const router = Router();
-router.use(requireSession);
+router.use(requireAuth, requireLinkedUser);
 
 function describeDna(username: string, dna: OpeningDna): string {
   const lines = dna.openings
@@ -19,7 +19,7 @@ function describeDna(username: string, dna: OpeningDna): string {
 }
 
 router.post("/compare", async (req, res) => {
-  const me = await db.user.findUnique({ where: { id: req.session.userId! } });
+  const me = await db.user.findUnique({ where: { id: req.userId! } });
   if (!me) {
     res.status(404).json({ error: "User not found" });
     return;

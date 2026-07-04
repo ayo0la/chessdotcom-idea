@@ -1,55 +1,90 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Routes, Route } from "react-router-dom";
 import Landing from "../src/pages/Landing";
-import * as api from "../src/api";
 
-vi.mock("../src/api", () => ({
-  claimUsername: vi.fn(),
+vi.mock("../src/lib/supabase", () => ({
+  supabase: {
+    auth: {
+      signInWithPassword: vi.fn(),
+      signUp: vi.fn(),
+    },
+  },
 }));
 
-const mockNavigate = vi.fn();
-vi.mock("react-router-dom", async () => {
-  const actual = await vi.importActual("react-router-dom");
-  return { ...actual, useNavigate: () => mockNavigate };
-});
+import { supabase } from "../src/lib/supabase";
 
-beforeEach((): void => {
+function renderLanding() {
+  return render(
+    <MemoryRouter initialEntries={["/"]}>
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/link" element={<div>LINK PAGE</div>} />
+      </Routes>
+    </MemoryRouter>
+  );
+}
+
+beforeEach(() => {
   vi.clearAllMocks();
 });
 
 describe("Landing", () => {
-  it("renders the claim form", () => {
-    render(<MemoryRouter><Landing /></MemoryRouter>);
-    expect(screen.getByPlaceholderText(/chess.com username/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /enter/i })).toBeInTheDocument();
+  it("renders the sign-in form", () => {
+    renderLanding();
+    expect(screen.getByPlaceholderText(/email/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/password/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /sign in/i })).toBeInTheDocument();
   });
 
-  it("calls claimUsername and navigates to /dashboard on success", async () => {
-    vi.mocked(api.claimUsername).mockResolvedValueOnce({
-      userId: "u1",
-      chesscomUsername: "hikaru",
+  it("signs in and moves on", async () => {
+    vi.mocked(supabase.auth.signInWithPassword).mockResolvedValue({
+      data: { session: {} },
+      error: null,
+    } as any);
+
+    renderLanding();
+    await userEvent.type(screen.getByPlaceholderText(/email/i), "ayo@test.com");
+    await userEvent.type(screen.getByPlaceholderText(/password/i), "secret123");
+    await userEvent.click(screen.getByRole("button", { name: /sign in/i }));
+
+    expect(supabase.auth.signInWithPassword).toHaveBeenCalledWith({
+      email: "ayo@test.com",
+      password: "secret123",
     });
-
-    render(<MemoryRouter><Landing /></MemoryRouter>);
-
-    await userEvent.type(screen.getByPlaceholderText(/chess.com username/i), "hikaru");
-    await userEvent.click(screen.getByRole("button", { name: /enter/i }));
-
-    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith("/dashboard"));
+    expect(await screen.findByText("LINK PAGE")).toBeInTheDocument();
   });
 
-  it("shows error message when username is not found", async () => {
-    vi.mocked(api.claimUsername).mockRejectedValueOnce(new Error("Not found"));
+  it("shows an error when sign-in fails", async () => {
+    vi.mocked(supabase.auth.signInWithPassword).mockResolvedValue({
+      data: { session: null },
+      error: { message: "Invalid login credentials" },
+    } as any);
 
-    render(<MemoryRouter><Landing /></MemoryRouter>);
+    renderLanding();
+    await userEvent.type(screen.getByPlaceholderText(/email/i), "ayo@test.com");
+    await userEvent.type(screen.getByPlaceholderText(/password/i), "wrong");
+    await userEvent.click(screen.getByRole("button", { name: /sign in/i }));
 
-    await userEvent.type(screen.getByPlaceholderText(/chess.com username/i), "nobody");
-    await userEvent.click(screen.getByRole("button", { name: /enter/i }));
+    expect(await screen.findByText(/invalid login/i)).toBeInTheDocument();
+  });
 
-    await waitFor(() =>
-      expect(screen.getByText(/username not found/i)).toBeInTheDocument()
-    );
+  it("switches to sign-up mode and creates an account", async () => {
+    vi.mocked(supabase.auth.signUp).mockResolvedValue({
+      data: { session: {} },
+      error: null,
+    } as any);
+
+    renderLanding();
+    await userEvent.click(screen.getByRole("button", { name: /create one/i }));
+    await userEvent.type(screen.getByPlaceholderText(/email/i), "new@test.com");
+    await userEvent.type(screen.getByPlaceholderText(/password/i), "secret123");
+    await userEvent.click(screen.getByRole("button", { name: /sign up/i }));
+
+    expect(supabase.auth.signUp).toHaveBeenCalledWith({
+      email: "new@test.com",
+      password: "secret123",
+    });
   });
 });

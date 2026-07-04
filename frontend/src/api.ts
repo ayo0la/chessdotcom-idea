@@ -1,18 +1,65 @@
+import { supabase } from "./lib/supabase.js";
+
 const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? "/api";
 
+export class ApiError extends Error {
+  constructor(
+    public status: number,
+    message: string
+  ) {
+    super(message);
+  }
+}
+
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
   const res = await fetch(`${BASE}${path}`, {
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
     ...init,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(init?.headers ?? {}),
+    },
   });
-  if (!res.ok) throw new Error(await res.text());
+  if (!res.ok) {
+    const text = await res.text();
+    let message = text;
+    try {
+      message = (JSON.parse(text) as { error?: string }).error ?? text;
+    } catch {
+      // not JSON; keep raw text
+    }
+    throw new ApiError(res.status, message);
+  }
   return res.json() as Promise<T>;
 }
 
 export interface UserSession {
   userId: string;
   chesscomUsername: string;
+}
+
+export interface AccountStatus {
+  user: UserSession | null;
+  pending: { username: string; code: string } | null;
+}
+
+export function getAccountStatus(): Promise<AccountStatus> {
+  return apiFetch("/account/status");
+}
+
+export function linkUsername(
+  username: string
+): Promise<{ username: string; code: string }> {
+  return apiFetch("/account/link", {
+    method: "POST",
+    body: JSON.stringify({ username }),
+  });
+}
+
+export function verifyUsername(): Promise<UserSession> {
+  return apiFetch("/account/verify", { method: "POST" });
 }
 
 export interface LeaderboardEntry {
@@ -31,13 +78,6 @@ export interface TiltWarning {
   rushing: boolean;
   suggestion: string;
   createdAt?: string;
-}
-
-export function claimUsername(username: string): Promise<UserSession> {
-  return apiFetch("/auth/claim", {
-    method: "POST",
-    body: JSON.stringify({ username }),
-  });
 }
 
 export function getMe(): Promise<UserSession> {

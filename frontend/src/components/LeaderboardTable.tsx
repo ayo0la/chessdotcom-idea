@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import type { LeaderboardEntry } from "../api";
 import DeltaBadge from "./DeltaBadge";
 
@@ -30,7 +31,19 @@ export default function LeaderboardTable({ entries, deltas = {}, onUnfollow }: P
             }`}
           >
             <td className="py-3 pr-4 text-gray-500">{e.rank}</td>
-            <td className="py-3 pr-4 font-medium text-white">{e.username}</td>
+            <td className="py-3 pr-4 font-medium text-white">
+              {e.isMe ? (
+                e.username
+              ) : (
+                <Link
+                  to={`/search?u=${encodeURIComponent(e.username)}`}
+                  className="hover:text-green-400 hover:underline"
+                  title={`Scout ${e.username}`}
+                >
+                  {e.username}
+                </Link>
+              )}
+            </td>
             <td className="py-3 pr-4 text-right text-white">
               <span className="mr-2">{e.rating}</span>
               {deltas[e.username] != null && (

@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { searchPlayer, followPlayer } from "../api";
+import ScoutCard from "../components/ScoutCard";
 
 interface SearchResult {
   username: string;
@@ -8,26 +9,37 @@ interface SearchResult {
 }
 
 export default function Search() {
-  const [query, setQuery] = useState("");
+  const [params] = useSearchParams();
+  const [query, setQuery] = useState(params.get("u") ?? "");
   const [result, setResult] = useState<SearchResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [followed, setFollowed] = useState(false);
   const [searching, setSearching] = useState(false);
 
-  async function handleSearch(e: React.FormEvent) {
-    e.preventDefault();
+  async function runSearch(username: string) {
     setError(null);
     setResult(null);
     setFollowed(false);
     setSearching(true);
     try {
-      const data = await searchPlayer(query.trim());
+      const data = await searchPlayer(username);
       setResult(data);
     } catch {
       setError("Player not found on Chess.com.");
     } finally {
       setSearching(false);
     }
+  }
+
+  useEffect(() => {
+    const preset = params.get("u");
+    if (preset) void runSearch(preset);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function handleSearch(e: React.FormEvent) {
+    e.preventDefault();
+    await runSearch(query.trim());
   }
 
   async function handleFollow() {
@@ -86,6 +98,7 @@ export default function Search() {
           </div>
         </div>
       )}
+      {result && <ScoutCard username={result.username} />}
     </main>
   );
 }

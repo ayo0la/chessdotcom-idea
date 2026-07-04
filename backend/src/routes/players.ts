@@ -5,6 +5,7 @@ import { db } from "../db.js";
 import { fetchRecentGames } from "../services/analysis/pgn-fetcher.js";
 import { computeOpeningDna } from "../services/analysis/opening-dna.js";
 import { computeStyleProfile } from "../services/analysis/style-classifier.js";
+import { computeRecentForm } from "../services/analysis/scout.js";
 
 const STYLE_TTL_MS = 24 * 60 * 60 * 1000;
 
@@ -42,6 +43,30 @@ router.get("/:username/style", async (req, res) => {
       });
     }
     res.json(profile);
+  } catch {
+    res.status(502).json({ error: "Could not fetch game history" });
+  }
+});
+
+router.get("/:username/scout", async (req, res) => {
+  const username = req.params.username.toLowerCase();
+  try {
+    const games = await fetchRecentGames(username);
+    if (games.length === 0) {
+      res.status(404).json({ error: "No recent games to scout" });
+      return;
+    }
+    const dna = computeOpeningDna(games, username);
+    const qualified = dna.openings.filter((o) => o.games >= 5);
+    const weapons = [...qualified].sort((a, b) => b.winRate - a.winRate).slice(0, 3);
+    const weaknesses = [...qualified].sort((a, b) => a.winRate - b.winRate).slice(0, 3);
+    res.json({
+      username,
+      recentForm: computeRecentForm(games, username),
+      weapons,
+      weaknesses,
+      style: computeStyleProfile(games, username),
+    });
   } catch {
     res.status(502).json({ error: "Could not fetch game history" });
   }

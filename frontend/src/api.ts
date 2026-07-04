@@ -156,6 +156,24 @@ export function compareOpenings(username: string): Promise<{ narrative: string }
   });
 }
 
+export interface ScoutReport {
+  username: string;
+  recentForm: {
+    games: number;
+    wins: number;
+    losses: number;
+    draws: number;
+    streak: number;
+  };
+  weapons: OpeningStat[];
+  weaknesses: OpeningStat[];
+  style: StyleProfile | null;
+}
+
+export function getScout(username: string): Promise<ScoutReport> {
+  return apiFetch(`/players/${username}/scout`);
+}
+
 export interface DebriefPromptInfo {
   id: string;
   gameId: string;

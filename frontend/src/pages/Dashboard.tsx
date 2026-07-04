@@ -6,6 +6,7 @@ import TiltBanner from "../components/TiltBanner";
 import OpeningDNA from "../components/OpeningDNA";
 import StyleCard from "../components/StyleCard";
 import RatingChart from "../components/RatingChart";
+import BlunderFingerprint from "../components/BlunderFingerprint";
 import DebriefModal from "../components/DebriefModal";
 import DebriefInsights from "../components/DebriefInsights";
 import { useLeaderboard } from "../hooks/useLeaderboard";
@@ -121,6 +122,7 @@ export default function Dashboard() {
           friends={entries.filter((e) => !e.isMe).map((e) => e.username)}
         />
       )}
+      {me && <BlunderFingerprint />}
       {debriefSummary && <DebriefInsights count={debriefSummary.count} />}
       {me && <DebriefModal userId={me.userId} onSubmitted={refreshDebriefSummary} />}
     </main>

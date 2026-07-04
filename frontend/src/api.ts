@@ -174,6 +174,47 @@ export function getScout(username: string): Promise<ScoutReport> {
   return apiFetch(`/players/${username}/scout`);
 }
 
+export interface LossGame {
+  gameId: string;
+  pgn: string;
+  color: "white" | "black";
+  timeControl: string;
+  endTime: number;
+}
+
+export function getMyLosses(limit = 8): Promise<LossGame[]> {
+  return apiFetch(`/me/losses?limit=${limit}`);
+}
+
+export interface StoredFingerprint {
+  fingerprint: {
+    gamesAnalyzed: number;
+    mistakes: number;
+    byType: Record<string, number>;
+    examples: Array<{
+      gameId: string;
+      moveNumber: number;
+      san: string;
+      type: string;
+      dropCp: number;
+    }>;
+  } | null;
+  computedAt: string | null;
+}
+
+export function getFingerprint(): Promise<StoredFingerprint> {
+  return apiFetch("/me/fingerprint");
+}
+
+export async function saveFingerprint(
+  fingerprint: StoredFingerprint["fingerprint"]
+): Promise<void> {
+  await apiFetch("/me/fingerprint", {
+    method: "POST",
+    body: JSON.stringify({ fingerprint }),
+  });
+}
+
 export interface DebriefPromptInfo {
   id: string;
   gameId: string;

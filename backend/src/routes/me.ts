@@ -4,6 +4,8 @@ import { db } from "../db.js";
 import { requireAuth, requireLinkedUser } from "../middleware/requireAuth.js";
 import { computeStreak } from "../services/debriefs.js";
 import { claudeEnabled, generateText } from "../services/claude.js";
+import { fetchRecentGames } from "../services/analysis/pgn-fetcher.js";
+import { lossesForUser } from "../services/analysis/scout.js";
 
 const DIAGNOSIS_MIN_DEBRIEFS = 10;
 
@@ -31,6 +33,45 @@ router.get("/tilt", async (req, res) => {
     orderBy: { createdAt: "desc" },
   });
   res.json(event ?? null);
+});
+
+router.get("/losses", async (req, res) => {
+  const me = await db.user.findUnique({ where: { id: req.userId! } });
+  if (!me) {
+    res.status(404).json({ error: "User not found" });
+    return;
+  }
+  const limit = Math.min(parseInt((req.query.limit as string) ?? "10", 10) || 10, 30);
+  try {
+    const games = await fetchRecentGames(me.chesscomUsername);
+    res.json(lossesForUser(games, me.chesscomUsername, limit));
+  } catch {
+    res.status(502).json({ error: "Could not fetch game history" });
+  }
+});
+
+router.get("/fingerprint", async (req, res) => {
+  const me = await db.user.findUnique({ where: { id: req.userId! } });
+  res.json({
+    fingerprint: me?.blunderFingerprint ?? null,
+    computedAt: me?.fingerprintComputedAt ?? null,
+  });
+});
+
+router.post("/fingerprint", async (req, res) => {
+  const fingerprint = req.body?.fingerprint;
+  if (!fingerprint || typeof fingerprint !== "object") {
+    res.status(400).json({ error: "fingerprint is required" });
+    return;
+  }
+  await db.user.update({
+    where: { id: req.userId! },
+    data: {
+      blunderFingerprint: fingerprint as Prisma.InputJsonValue,
+      fingerprintComputedAt: new Date(),
+    },
+  });
+  res.json({ ok: true });
 });
 
 router.get("/rating-history", async (req, res) => {

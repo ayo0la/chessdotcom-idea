@@ -26,6 +26,33 @@ function outcomeFor(game: MonthlyGame, uname: string): Outcome {
   return "draw";
 }
 
+export interface LossGame {
+  gameId: string;
+  pgn: string;
+  color: "white" | "black";
+  timeControl: string;
+  endTime: number;
+}
+
+export function lossesForUser(
+  games: MonthlyGame[],
+  username: string,
+  limit: number
+): LossGame[] {
+  const uname = username.toLowerCase();
+  return [...games]
+    .sort((a, b) => b.end_time - a.end_time)
+    .filter((g) => outcomeFor(g, uname) === "loss")
+    .slice(0, limit)
+    .map((g) => ({
+      gameId: g.url,
+      pgn: g.pgn ?? "",
+      color: g.white.username.toLowerCase() === uname ? "white" : "black",
+      timeControl: g.time_control,
+      endTime: g.end_time,
+    }));
+}
+
 export function computeRecentForm(
   games: MonthlyGame[],
   username: string,

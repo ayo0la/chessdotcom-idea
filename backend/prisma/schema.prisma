@@ -16,6 +16,8 @@ model User {
   createdAt        DateTime  @default(now())
   styleProfile     Json?
   styleComputedAt  DateTime?
+  blunderFingerprint    Json?
+  fingerprintComputedAt DateTime?
   following        Follow[] @relation("follower")
   followers        Follow[] @relation("following")
   ratings          Rating[]

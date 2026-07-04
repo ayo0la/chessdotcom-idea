@@ -14,6 +14,9 @@ if (process.env.NODE_ENV === "production" && !process.env.CRON_SECRET) {
 
 export const app = express();
 
+// Behind Vercel's proxy; required for secure session cookies
+app.set("trust proxy", 1);
+
 app.use(express.json());
 app.use(sessionParser);
 app.use("/auth", authRouter);

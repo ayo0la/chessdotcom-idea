@@ -73,13 +73,21 @@ export default function Dashboard() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white px-4 py-8 max-w-3xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
+    <main className="page-shell mx-auto max-w-3xl px-4 py-8 text-white">
+      <header className="mb-8 flex items-start justify-between gap-4 animate-rise">
         <div>
-          <h1 className="text-2xl font-bold">Leaderboard</h1>
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-xl shadow-glow-sm">
+              ♞
+            </span>
+            <h1 className="font-display text-2xl font-bold tracking-tight">
+              Chess Rivals
+            </h1>
+          </div>
           {me && (
-            <p className="text-gray-400 text-sm mt-1">
-              Signed in as {me.chesscomUsername}
+            <p className="mt-2 text-sm text-gray-400">
+              Signed in as{" "}
+              <span className="font-medium text-gray-200">{me.chesscomUsername}</span>
               {debriefSummary && debriefSummary.streak > 0 && (
                 <span className="ml-2 text-amber-400">
                   🔥 {debriefSummary.streak}-day debrief streak
@@ -88,32 +96,35 @@ export default function Dashboard() {
             </p>
           )}
         </div>
-        <div className="flex items-center gap-4">
-          <Link to="/search" className="text-green-400 text-sm hover:underline">
+        <div className="flex shrink-0 items-center gap-2">
+          <Link to="/search" className="btn-ghost px-3 py-1.5 text-sm">
             + Follow players
           </Link>
           <button
             onClick={handleSignOut}
-            className="text-gray-500 text-sm hover:text-gray-300"
+            className="px-2 py-1.5 text-sm text-gray-500 transition-colors hover:text-gray-300"
           >
             Sign out
           </button>
         </div>
-      </div>
+      </header>
       {me && <TiltBanner userId={me.userId} />}
-      <TimeControlTabs active={tc} onChange={setTc} />
-      {loading ? (
-        <p className="text-gray-500 text-sm">Loading...</p>
-      ) : entries.length === 0 ? (
-        <p className="text-gray-500 text-sm">
-          No players yet.{" "}
-          <Link to="/search" className="text-green-400 hover:underline">
-            Follow someone to get started.
-          </Link>
-        </p>
-      ) : (
-        <LeaderboardTable entries={entries} deltas={deltas} onUnfollow={handleUnfollow} />
-      )}
+      <section className="card p-4 sm:p-5 animate-rise">
+        <p className="kicker mb-3">Friends Leaderboard</p>
+        <TimeControlTabs active={tc} onChange={setTc} />
+        {loading ? (
+          <p className="text-sm text-gray-500">Loading...</p>
+        ) : entries.length === 0 ? (
+          <p className="text-sm text-gray-500">
+            No players yet.{" "}
+            <Link to="/search" className="text-emerald-400 hover:underline">
+              Follow someone to get started.
+            </Link>
+          </p>
+        ) : (
+          <LeaderboardTable entries={entries} deltas={deltas} onUnfollow={handleUnfollow} />
+        )}
+      </section>
       {me && <RatingChart tc={tc} />}
       {me && <StyleCard username={me.chesscomUsername} />}
       {me && (

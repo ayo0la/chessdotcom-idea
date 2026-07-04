@@ -34,7 +34,7 @@ describe("LeaderboardTable", () => {
   it("highlights the viewer's own row", () => {
     renderTable();
     const myRow = screen.getByText("gothamchess").closest("tr");
-    expect(myRow).toHaveClass("bg-green-900");
+    expect(myRow).toHaveAttribute("data-me", "true");
   });
 
   it("links other players to the scouting page but not yourself", () => {

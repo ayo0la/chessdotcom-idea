@@ -71,13 +71,16 @@ export default function BlunderFingerprint() {
     : [];
 
   return (
-    <section className="mt-10">
-      <div className="flex items-center justify-between mb-1">
-        <h2 className="text-lg font-bold">Blunder Fingerprint</h2>
+    <section className="card mt-6 p-4 sm:p-5 animate-rise">
+      <div className="mb-1 flex items-start justify-between">
+        <div>
+          <p className="kicker">Where you lose</p>
+          <h2 className="font-display text-lg font-bold">Blunder Fingerprint</h2>
+        </div>
         {fingerprint && !running && (
           <button
             onClick={handleAnalyze}
-            className="text-sm text-green-400 hover:underline"
+            className="text-sm text-emerald-400 transition-colors hover:text-emerald-300"
           >
             Re-analyze
           </button>
@@ -90,10 +93,7 @@ export default function BlunderFingerprint() {
             Stockfish replays your recent losses in your browser and finds where
             you actually lose games.
           </p>
-          <button
-            onClick={handleAnalyze}
-            className="text-sm px-3 py-1.5 rounded bg-green-600 hover:bg-green-500 font-medium"
-          >
+          <button onClick={handleAnalyze} className="btn-primary px-4 py-2 text-sm">
             Analyze my recent losses
           </button>
         </>
@@ -123,14 +123,14 @@ export default function BlunderFingerprint() {
                   </span>
                   <span className="text-gray-400 text-xs">{count}</span>
                 </div>
-                <div className="h-2 rounded-full bg-gray-800">
+                <div className="bar-track">
                   <div
                     role="meter"
                     aria-label={`${MISTAKE_LABELS[type] ?? type} count`}
                     aria-valuenow={count}
                     aria-valuemin={0}
                     aria-valuemax={total}
-                    className="h-2 rounded-full bg-green-600"
+                    className="bar-fill"
                     style={{ width: `${(count / total) * 100}%` }}
                   />
                 </div>
@@ -138,8 +138,8 @@ export default function BlunderFingerprint() {
             ))}
           </ul>
           {sortedTypes[0] && (
-            <p className="mt-4 text-sm text-gray-300 border border-gray-800 rounded-lg bg-gray-900/60 px-4 py-3">
-              <span className="font-semibold text-green-400">Fix first: </span>
+            <p className="mt-4 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] px-4 py-3 text-sm leading-relaxed text-gray-200">
+              <span className="font-semibold text-emerald-400">Fix first: </span>
               {MISTAKE_ADVICE[sortedTypes[0][0]] ??
                 "Review the sample games below."}
             </p>
@@ -156,7 +156,7 @@ export default function BlunderFingerprint() {
                       href={ex.gameId}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-green-400 hover:underline"
+                      className="text-emerald-400 transition-colors hover:text-emerald-300 hover:underline"
                     >
                       Move {ex.moveNumber}: {ex.san}
                     </a>{" "}

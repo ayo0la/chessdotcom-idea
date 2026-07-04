@@ -93,7 +93,7 @@ export default function DebriefModal({ userId, onSubmitted }: DebriefModalProps)
         value={answers[key]}
         onChange={(e) => set(key)(e.target.value)}
         placeholder={placeholder}
-        className="mt-1 w-full rounded bg-gray-900 border border-gray-700 px-2 py-1.5 text-gray-100"
+        className="input-field mt-1 w-full px-3 py-2 text-sm"
       />
     </label>
   );
@@ -111,7 +111,7 @@ export default function DebriefModal({ userId, onSubmitted }: DebriefModalProps)
       <select
         value={answers[key]}
         onChange={(e) => set(key)(e.target.value)}
-        className="mt-1 w-full rounded bg-gray-900 border border-gray-700 px-2 py-1.5 text-gray-100"
+        className="input-field mt-1 w-full px-3 py-2 text-sm"
       >
         {options.map(([value, text]) => (
           <option key={value} value={value}>
@@ -123,20 +123,21 @@ export default function DebriefModal({ userId, onSubmitted }: DebriefModalProps)
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
       <div
         role="dialog"
         aria-label="Post-game debrief"
-        className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-lg border border-gray-800 bg-gray-950 p-5"
+        className="card max-h-[90vh] w-full max-w-md overflow-y-auto bg-[#0d0d13] p-5 animate-rise"
       >
-        <h2 className="text-lg font-bold">Quick debrief</h2>
-        <p className="text-gray-400 text-xs mt-1 mb-4">
+        <p className="kicker">Post-game debrief</p>
+        <h2 className="font-display text-lg font-bold">Quick debrief</h2>
+        <p className="mb-4 mt-1 text-xs text-gray-400">
           You just lost a game. 90 seconds now saves rating points later.{" "}
           <a
             href={prompt.gameUrl}
             target="_blank"
             rel="noreferrer"
-            className="text-green-400 hover:underline"
+            className="text-emerald-400 hover:underline"
           >
             Review the game
           </a>
@@ -174,14 +175,14 @@ export default function DebriefModal({ userId, onSubmitted }: DebriefModalProps)
         <div className="mt-5 flex justify-end gap-2">
           <button
             onClick={() => setPrompt(null)}
-            className="text-sm px-3 py-1.5 rounded text-gray-400 hover:text-gray-200"
+            className="rounded-xl px-3 py-1.5 text-sm text-gray-400 transition-colors hover:text-gray-200"
           >
             Skip
           </button>
           <button
             onClick={handleSubmit}
             disabled={saving}
-            className="text-sm px-3 py-1.5 rounded bg-green-600 hover:bg-green-500 disabled:opacity-50 font-medium"
+            className="btn-primary px-4 py-1.5 text-sm"
           >
             {saving ? "Saving..." : "Save debrief"}
           </button>

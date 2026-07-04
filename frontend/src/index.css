@@ -2,12 +2,98 @@
 @tailwind components;
 @tailwind utilities;
 
-@keyframes fadeOut {
-  0% { opacity: 1; }
-  70% { opacity: 1; }
-  100% { opacity: 0; }
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+  body {
+    @apply font-sans text-gray-100 antialiased;
+    background: linear-gradient(180deg, #0b0b12 0%, #07070a 100%);
+    min-height: 100vh;
+  }
+  ::selection {
+    background: rgba(16, 185, 129, 0.35);
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+  }
 }
 
-.animate-fade-out {
-  animation: fadeOut 3s ease-out forwards;
+@layer components {
+  /* Shared page shell with fixed ambient glow */
+  .page-shell {
+    @apply relative min-h-screen overflow-x-clip;
+  }
+  .page-shell::before,
+  .page-shell::after {
+    content: "";
+    @apply pointer-events-none fixed rounded-full;
+    z-index: -1;
+    filter: blur(90px);
+  }
+  .page-shell::before {
+    width: 420px;
+    height: 420px;
+    left: -140px;
+    top: -120px;
+    background: rgba(16, 185, 129, 0.14);
+    animation: drift 18s ease-in-out infinite;
+  }
+  .page-shell::after {
+    width: 380px;
+    height: 380px;
+    right: -120px;
+    bottom: -100px;
+    background: rgba(94, 106, 210, 0.12);
+    animation: drift 26s ease-in-out infinite reverse;
+  }
+
+  .card {
+    @apply rounded-card border border-white/[0.08] bg-white/[0.03] shadow-card;
+  }
+
+  .kicker {
+    @apply text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-400/80;
+  }
+
+  .btn-primary {
+    @apply rounded-xl bg-gradient-to-b from-emerald-500 to-emerald-600 font-semibold text-white
+      shadow-glow-sm transition-all duration-200 ease-swift
+      hover:from-emerald-400 hover:to-emerald-500 hover:shadow-glow
+      active:scale-[0.98] disabled:opacity-50 disabled:shadow-none;
+  }
+
+  .btn-ghost {
+    @apply rounded-xl border border-white/10 bg-white/[0.04] font-medium text-gray-300
+      transition-all duration-200 ease-swift hover:border-white/20 hover:bg-white/[0.07]
+      hover:text-white active:scale-[0.98] disabled:opacity-50;
+  }
+
+  .input-field {
+    @apply rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-gray-100
+      placeholder-gray-500 transition-colors duration-200
+      focus:border-emerald-500/70 focus:outline-none focus:ring-1 focus:ring-emerald-500/40;
+  }
+
+  .bar-track {
+    @apply h-2 overflow-hidden rounded-full bg-white/[0.06];
+  }
+  .bar-fill {
+    @apply h-2 rounded-full bg-gradient-to-r from-emerald-600 to-emerald-500;
+    transition: width 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-shell::before,
+  .page-shell::after {
+    animation: none;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

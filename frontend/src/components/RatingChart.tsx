@@ -20,10 +20,11 @@ export default function RatingChart({ tc }: RatingChartProps) {
   if (failed || points === null) return null;
 
   return (
-    <section className="mt-10">
-      <h2 className="text-lg font-bold mb-1">Rating Progress</h2>
+    <section className="card mt-6 p-4 sm:p-5 animate-rise">
+      <p className="kicker">Progress</p>
+      <h2 className="mb-2 font-display text-lg font-bold">Rating Progress</h2>
       {points.length < 2 ? (
-        <p className="text-gray-500 text-sm">
+        <p className="text-sm text-gray-500">
           Tracking your rating from here on. Play a few games and the graph
           will fill in.
         </p>
@@ -55,11 +56,19 @@ function Chart({ points }: { points: RatingPoint[] }) {
   const first = points[0];
   const delta = latest.rating - first.rating;
 
+  const areaCoords = `${PAD},${H - PAD} ${coords} ${W - PAD},${H - PAD}`;
+
   return (
     <div>
-      <div className="flex items-baseline gap-2 mb-2">
-        <span className="text-2xl font-bold text-gray-100">{latest.rating}</span>
-        <span className={delta >= 0 ? "text-green-400 text-sm" : "text-red-400 text-sm"}>
+      <div className="mb-2 flex items-baseline gap-2">
+        <span className="font-display text-3xl font-bold tabular-nums text-gray-100">
+          {latest.rating}
+        </span>
+        <span
+          className={
+            delta >= 0 ? "text-sm text-emerald-400" : "text-sm text-red-400"
+          }
+        >
           {delta >= 0 ? "+" : ""}
           {delta} over {points.length} updates
         </span>
@@ -67,15 +76,21 @@ function Chart({ points }: { points: RatingPoint[] }) {
       <svg
         viewBox={`0 0 ${W} ${H}`}
         preserveAspectRatio="none"
-        className="w-full h-24 rounded-lg border border-gray-800 bg-gray-900/40"
+        className="h-28 w-full rounded-xl border border-white/[0.06] bg-black/20"
         role="img"
         aria-label={`Rating over time, from ${first.rating} to ${latest.rating}`}
       >
+        <defs>
+          <linearGradient id="rating-fill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#10b981" stopOpacity="0.25" />
+            <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <polygon points={areaCoords} fill="url(#rating-fill)" />
         <polyline
           points={coords}
           fill="none"
           stroke="#16a34a"
-          strokeWidth="1"
           strokeLinejoin="round"
           strokeLinecap="round"
           vectorEffect="non-scaling-stroke"

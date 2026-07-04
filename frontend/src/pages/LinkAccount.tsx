@@ -58,83 +58,91 @@ export default function LinkAccount() {
 
   if (!loaded) {
     return (
-      <main className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <p className="text-gray-500 text-sm">Loading…</p>
+      <main className="page-shell flex items-center justify-center">
+        <p className="text-sm text-gray-500">Loading…</p>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gray-950 flex flex-col items-center justify-center gap-6 px-4">
-      <h1 className="text-2xl font-bold text-white">Link your Chess.com account</h1>
-      {!pending ? (
-        <>
-          <p className="text-gray-400 text-sm max-w-sm text-center">
-            Prove the account is yours so nobody else can claim it. Enter your
-            Chess.com username to get a verification code.
-          </p>
-          <form onSubmit={handleLink} className="flex flex-col gap-3 w-full max-w-sm">
-            <input
-              type="text"
-              placeholder="Chess.com username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="bg-gray-800 border border-gray-700 rounded px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-green-500"
-              required
-            />
-            <button
-              type="submit"
-              disabled={busy}
-              className="bg-green-600 hover:bg-green-500 text-white font-semibold py-2 rounded disabled:opacity-50"
-            >
-              {busy ? "Checking…" : "Get code"}
+    <main className="page-shell flex flex-col items-center justify-center gap-6 px-4 py-12">
+      <div className="w-full max-w-sm animate-rise">
+        <p className="kicker mb-2 text-center">One-time setup</p>
+        <h1 className="mb-6 text-center font-display text-2xl font-bold text-white">
+          Link your Chess.com account
+        </h1>
+
+        {!pending ? (
+          <div className="card p-5">
+            <p className="mb-4 text-sm leading-relaxed text-gray-400">
+              Prove the account is yours so nobody else can claim it. Enter your
+              Chess.com username to get a verification code.
+            </p>
+            <form onSubmit={handleLink} className="flex flex-col gap-3">
+              <input
+                type="text"
+                placeholder="Chess.com username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="input-field"
+                required
+              />
+              <button type="submit" disabled={busy} className="btn-primary py-2.5">
+                {busy ? "Checking…" : "Get code"}
+              </button>
+            </form>
+          </div>
+        ) : (
+          <div className="card flex flex-col gap-4 p-5">
+            <p className="text-sm text-gray-300">
+              Verifying <span className="font-semibold text-white">{pending.username}</span>
+            </p>
+            <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-center">
+              <span className="font-mono text-xl font-semibold tracking-widest text-emerald-300">
+                {pending.code}
+              </span>
+            </div>
+            <ol className="list-inside list-decimal space-y-2 text-sm leading-relaxed text-gray-400">
+              <li>Copy the code above.</li>
+              <li>
+                Open your{" "}
+                <a
+                  href="https://www.chess.com/settings/profile"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-emerald-400 hover:underline"
+                >
+                  Chess.com profile settings
+                </a>{" "}
+                and paste it into the <span className="text-gray-200">Location</span>{" "}
+                field, then save.
+              </li>
+              <li>Come back and hit Verify. You can remove the code afterwards.</li>
+            </ol>
+            <button onClick={handleVerify} disabled={busy} className="btn-primary py-2.5">
+              {busy ? "Verifying…" : "Verify"}
             </button>
-          </form>
-        </>
-      ) : (
-        <div className="w-full max-w-sm flex flex-col gap-4">
-          <p className="text-gray-300 text-sm">
-            Verifying <span className="font-semibold">{pending.username}</span>:
-          </p>
-          <ol className="text-gray-400 text-sm list-decimal list-inside space-y-2">
-            <li>
-              Copy this code:{" "}
-              <span className="font-mono text-green-400 text-base">{pending.code}</span>
-            </li>
-            <li>
-              Open your{" "}
-              <a
-                href="https://www.chess.com/settings/profile"
-                target="_blank"
-                rel="noreferrer"
-                className="text-green-400 hover:underline"
-              >
-                Chess.com profile settings
-              </a>{" "}
-              and paste it into the <span className="text-gray-200">Location</span>{" "}
-              field, then save.
-            </li>
-            <li>Come back and hit Verify. You can remove the code afterwards.</li>
-          </ol>
+            <button
+              onClick={() => setPending(null)}
+              className="text-sm text-gray-500 transition-colors hover:text-gray-300"
+            >
+              Use a different username
+            </button>
+          </div>
+        )}
+
+        {error && (
+          <p className="mt-4 text-center text-sm text-red-400">{error}</p>
+        )}
+        <div className="mt-6 text-center">
           <button
-            onClick={handleVerify}
-            disabled={busy}
-            className="bg-green-600 hover:bg-green-500 text-white font-semibold py-2 rounded disabled:opacity-50"
+            onClick={handleSignOut}
+            className="text-xs text-gray-600 transition-colors hover:text-gray-400"
           >
-            {busy ? "Verifying…" : "Verify"}
-          </button>
-          <button
-            onClick={() => setPending(null)}
-            className="text-gray-500 text-sm hover:text-gray-300"
-          >
-            Use a different username
+            Sign out
           </button>
         </div>
-      )}
-      {error && <p className="text-red-400 text-sm max-w-sm text-center">{error}</p>}
-      <button onClick={handleSignOut} className="text-gray-600 text-xs hover:text-gray-400">
-        Sign out
-      </button>
+      </div>
     </main>
   );
 }

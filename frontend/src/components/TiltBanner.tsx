@@ -46,11 +46,11 @@ export default function TiltBanner({ userId }: TiltBannerProps) {
   return (
     <div
       role="alert"
-      className="mb-4 flex items-start gap-3 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3"
+      className="mb-6 flex items-start gap-3 rounded-card border border-amber-500/40 bg-amber-500/10 px-4 py-3.5 shadow-[0_0_24px_rgba(245,158,11,0.15)] backdrop-blur-sm animate-rise"
     >
       <span aria-hidden className="text-lg leading-none">⚠️</span>
       <div className="flex-1 text-sm">
-        <p className="font-semibold text-amber-300">
+        <p className="font-display font-semibold text-amber-300">
           Tilt warning: {warning.lossCount} losses in the last 45 minutes
         </p>
         <p className="mt-0.5 text-amber-100/80">{warning.suggestion}</p>
@@ -58,7 +58,7 @@ export default function TiltBanner({ userId }: TiltBannerProps) {
       <button
         aria-label="Dismiss"
         onClick={() => setDismissed(true)}
-        className="text-amber-300/70 hover:text-amber-200"
+        className="rounded-lg px-2 text-lg leading-none text-amber-300/70 transition-colors hover:text-amber-200"
       >
         ×
       </button>

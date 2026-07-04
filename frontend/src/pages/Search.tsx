@@ -49,50 +49,57 @@ export default function Search() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white px-4 py-8 max-w-xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Find Players</h1>
-        <Link to="/dashboard" className="text-green-400 text-sm hover:underline">
+    <main className="page-shell mx-auto max-w-xl px-4 py-8 text-white">
+      <div className="mb-6 flex items-center justify-between animate-rise">
+        <div>
+          <p className="kicker">Scout &amp; follow</p>
+          <h1 className="font-display text-2xl font-bold tracking-tight">
+            Find Players
+          </h1>
+        </div>
+        <Link to="/dashboard" className="btn-ghost px-3 py-1.5 text-sm">
           ← Back
         </Link>
       </div>
-      <form onSubmit={handleSearch} className="flex gap-2 mb-6">
+      <form onSubmit={handleSearch} className="mb-6 flex gap-2 animate-rise">
         <input
           type="text"
           placeholder="Chess.com username"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="flex-1 bg-gray-800 border border-gray-700 rounded px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-green-500"
+          className="input-field flex-1"
           required
         />
         <button
           type="submit"
           disabled={searching}
-          className="bg-green-600 hover:bg-green-500 text-white font-semibold px-4 py-2 rounded disabled:opacity-50"
+          className="btn-primary px-5 py-2"
         >
           {searching ? "…" : "Search"}
         </button>
       </form>
 
-      {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
+      {error && <p className="mb-4 text-sm text-red-400">{error}</p>}
 
       {result && (
-        <div className="bg-gray-900 rounded p-4">
-          <div className="flex items-center justify-between mb-3">
-            <span className="font-semibold text-lg">{result.username}</span>
+        <div className="card p-4 sm:p-5 animate-rise">
+          <div className="mb-3 flex items-center justify-between">
+            <span className="font-display text-lg font-semibold">
+              {result.username}
+            </span>
             <button
               onClick={handleFollow}
               disabled={followed}
-              className="bg-green-600 hover:bg-green-500 text-white text-sm font-medium px-3 py-1 rounded disabled:opacity-50"
+              className="btn-primary px-4 py-1.5 text-sm"
             >
               {followed ? "Following ✓" : "Follow"}
             </button>
           </div>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-x-5 gap-y-1">
             {result.ratings.map((r) => (
               <div key={r.timeControl} className="text-sm">
-                <span className="text-gray-400 capitalize">{r.timeControl}</span>{" "}
-                <span className="font-medium">{r.rating}</span>
+                <span className="capitalize text-gray-400">{r.timeControl}</span>{" "}
+                <span className="font-semibold tabular-nums">{r.rating}</span>
               </div>
             ))}
           </div>

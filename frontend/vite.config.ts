@@ -3,7 +3,24 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
-  server: { proxy: { "/api": "http://localhost:3001" } },
+  server: {
+    proxy: {
+      "/api": {
+        target: process.env.API_PROXY ?? "http://localhost:3001",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ""),
+      },
+    },
+  },
+  preview: {
+    proxy: {
+      "/api": {
+        target: process.env.API_PROXY ?? "http://localhost:3001",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ""),
+      },
+    },
+  },
   test: {
     environment: "jsdom",
     globals: true,

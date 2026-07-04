@@ -33,10 +33,13 @@ export default function StyleCard({ username }: StyleCardProps) {
   if (failed || !profile) return null;
 
   return (
-    <section className="mt-10 rounded-lg border border-gray-800 bg-gray-900/60 p-4">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-bold">Play Style</h2>
-        <span className="text-gray-500 text-xs">
+    <section className="card mt-6 p-4 sm:p-5 animate-rise">
+      <div className="mb-4 flex items-baseline justify-between">
+        <div>
+          <p className="kicker">How you play</p>
+          <h2 className="font-display text-lg font-bold">Play Style</h2>
+        </div>
+        <span className="text-xs text-gray-500">
           {profile.gamesAnalyzed} games analyzed
         </span>
       </div>
@@ -48,7 +51,7 @@ export default function StyleCard({ username }: StyleCardProps) {
             <span
               data-active={active || undefined}
               className={
-                active ? "text-green-400 font-semibold" : "text-gray-500"
+                active ? "font-semibold text-emerald-400" : "text-gray-500"
               }
             >
               {text}
@@ -56,18 +59,18 @@ export default function StyleCard({ username }: StyleCardProps) {
           );
           return (
             <li key={axis.key}>
-              <div className="flex justify-between text-xs mb-1.5">
+              <div className="mb-1.5 flex justify-between text-xs">
                 {pole(axis.low, !highActive)}
                 {pole(axis.high, highActive)}
               </div>
-              <div className="relative h-2 rounded-full bg-gray-800">
+              <div className="relative h-2 rounded-full bg-white/[0.06]">
                 <div
                   role="meter"
                   aria-label={`${axis.label}: ${axis.low} to ${axis.high}`}
                   aria-valuenow={value}
                   aria-valuemin={0}
                   aria-valuemax={100}
-                  className="absolute top-1/2 -translate-y-1/2 h-3.5 w-3.5 rounded-full bg-green-600 ring-2 ring-gray-950"
+                  className="absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full bg-gradient-to-b from-emerald-400 to-emerald-600 shadow-glow-sm ring-2 ring-black/60 transition-all duration-700 ease-swift"
                   style={{ left: `calc(${value}% - 7px)` }}
                 />
               </div>

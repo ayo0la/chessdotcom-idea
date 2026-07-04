@@ -5,6 +5,7 @@ import LeaderboardTable from "../components/LeaderboardTable";
 import TiltBanner from "../components/TiltBanner";
 import OpeningDNA from "../components/OpeningDNA";
 import StyleCard from "../components/StyleCard";
+import RatingChart from "../components/RatingChart";
 import DebriefModal from "../components/DebriefModal";
 import DebriefInsights from "../components/DebriefInsights";
 import { useLeaderboard } from "../hooks/useLeaderboard";
@@ -112,6 +113,7 @@ export default function Dashboard() {
       ) : (
         <LeaderboardTable entries={entries} deltas={deltas} onUnfollow={handleUnfollow} />
       )}
+      {me && <RatingChart tc={tc} />}
       {me && <StyleCard username={me.chesscomUsername} />}
       {me && (
         <OpeningDNA

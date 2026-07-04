@@ -28,6 +28,9 @@ export async function pollAllRatings(): Promise<void> {
         create: { userId: user.id, ...l },
       });
       // Supabase Realtime pushes DB changes to subscribed frontend clients automatically
+      await db.ratingSnapshot.create({
+        data: { userId: user.id, timeControl: l.timeControl, rating: l.rating },
+      });
     }
 
     if (lossesIncreased) {

@@ -33,6 +33,17 @@ router.get("/tilt", async (req, res) => {
   res.json(event ?? null);
 });
 
+router.get("/rating-history", async (req, res) => {
+  const tc = (req.query.tc as string) || "blitz";
+  const since = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+  const snapshots = await db.ratingSnapshot.findMany({
+    where: { userId: req.userId!, timeControl: tc, createdAt: { gte: since } },
+    orderBy: { createdAt: "asc" },
+    take: 500,
+  });
+  res.json(snapshots.map((s) => ({ rating: s.rating, at: s.createdAt })));
+});
+
 router.get("/debrief-prompt", async (req, res) => {
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
   const prompt = await db.debriefPrompt.findFirst({

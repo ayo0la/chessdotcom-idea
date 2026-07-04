@@ -84,6 +84,15 @@ export function getMe(): Promise<UserSession> {
   return apiFetch("/me");
 }
 
+export interface RatingPoint {
+  rating: number;
+  at: string;
+}
+
+export function getRatingHistory(tc: string): Promise<RatingPoint[]> {
+  return apiFetch(`/me/rating-history?tc=${tc}`);
+}
+
 export function getTiltStatus(): Promise<TiltWarning | null> {
   return apiFetch("/me/tilt");
 }

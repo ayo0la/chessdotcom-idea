@@ -4,6 +4,7 @@ vi.mock("../src/db", () => ({
   db: {
     user: { findMany: vi.fn() },
     rating: { upsert: vi.fn() },
+    ratingSnapshot: { create: vi.fn() },
   },
 }));
 vi.mock("../src/chesscom", () => ({
@@ -72,6 +73,21 @@ describe("pollAllRatings", () => {
     await pollAllRatings();
 
     expect(db.rating.upsert).not.toHaveBeenCalled();
+    expect(db.ratingSnapshot.create).not.toHaveBeenCalled();
+  });
+
+  it("records a rating snapshot when the rating changes", async () => {
+    vi.mocked(db.user.findMany).mockResolvedValueOnce([fakeUser] as any);
+    vi.mocked(fetchPlayerRatings).mockResolvedValueOnce([
+      { timeControl: "blitz", rating: 3112, wins: 501, losses: 100, draws: 50 },
+    ]);
+    vi.mocked(db.rating.upsert).mockResolvedValueOnce({} as any);
+
+    await pollAllRatings();
+
+    expect(db.ratingSnapshot.create).toHaveBeenCalledWith({
+      data: { userId: "user1", timeControl: "blitz", rating: 3112 },
+    });
   });
 
   it("runs the tilt check when a user's losses increase", async () => {

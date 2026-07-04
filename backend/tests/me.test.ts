@@ -11,6 +11,7 @@ vi.mock("../src/db", () => ({
   db: {
     user: { findUnique: vi.fn() },
     tiltEvent: { findFirst: vi.fn() },
+    ratingSnapshot: { findMany: vi.fn() },
   },
 }));
 
@@ -66,5 +67,37 @@ describe("GET /me/tilt", () => {
   it("requires a session", async () => {
     const res = await request(buildApp(undefined)).get("/me/tilt");
     expect(res.status).toBe(401);
+  });
+});
+
+describe("GET /me/rating-history", () => {
+  it("returns rating points for the requested time control, oldest first", async () => {
+    vi.mocked(db.ratingSnapshot.findMany).mockResolvedValueOnce([
+      { rating: 500, createdAt: new Date("2026-07-01T00:00:00Z") },
+      { rating: 512, createdAt: new Date("2026-07-02T00:00:00Z") },
+    ] as any);
+
+    const res = await request(buildApp("user1")).get(
+      "/me/rating-history?tc=blitz"
+    );
+
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(2);
+    expect(res.body[0]).toMatchObject({ rating: 500 });
+    expect(db.ratingSnapshot.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ userId: "user1", timeControl: "blitz" }),
+        orderBy: { createdAt: "asc" },
+      })
+    );
+  });
+
+  it("defaults to blitz", async () => {
+    vi.mocked(db.ratingSnapshot.findMany).mockResolvedValueOnce([] as any);
+
+    const res = await request(buildApp("user1")).get("/me/rating-history");
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([]);
   });
 });

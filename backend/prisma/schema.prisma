@@ -22,6 +22,7 @@ model User {
   tiltEvents       TiltEvent[]
   debriefs         Debrief[]
   debriefPrompts   DebriefPrompt[]
+  ratingSnapshots  RatingSnapshot[]
 }
 
 model Follow {
@@ -75,6 +76,17 @@ model DebriefPrompt {
 
   @@unique([userId, gameId])
   @@index([userId, createdAt])
+}
+
+model RatingSnapshot {
+  id          String   @id @default(cuid())
+  userId      String
+  timeControl String
+  rating      Int
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, timeControl, createdAt])
 }
 
 model Rating {
